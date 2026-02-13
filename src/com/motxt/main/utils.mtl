@@ -1,0 +1,34 @@
+[comment encoding = UTF-8 /]
+[module utils('http://www.eclipse.org/uml2/5.0.0/UML')]
+
+
+[query public toTitleCase(s : String) : String = 
+    s.substring(1, 1).toUpper() + s.substring(2).toLower() 
+/]
+
+[query public toSnakeCase(s : String) : String = 
+    s.replaceAll('([a-z])([A-Z])', '$1_$2').toLowerCase()
+/]
+
+[query public getAllClass(m : Model) : Set(Class) =
+	m.packagedElement->filter(Class) 
+/]
+
+[query public getParentNames(c : Class) : String = 
+    c.ancestors(Class).name->sep(', ')->toString()
+/]
+
+[query public mapDataType(p : Property) : String = 
+	if (p.type.name.toLower() = 'string') then 
+        'models.CharField(max_length=255)'
+    else if (p.type.name.toLower() = 'integer') then 
+        'models.IntegerField()'
+    else if (p.type.name.toLower() = 'boolean') then 
+        'models.BooleanField(default=False)'
+    else if (p.type.name.toLower() = 'float') then 
+        'models.FloatField()'
+    else 
+        'models.TextField()'
+    endif endif endif endif
+/]
+
