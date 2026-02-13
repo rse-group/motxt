@@ -7,10 +7,20 @@ from django.db import models
 
 [for (cls : Class | model.getAllClass())]
 class [cls.name/]([cls.getParentClass()/]):
+    [cls.getAttributes()/]
 	pass    
 [/for]
 [/template]
 
 [template public getParentClass(cls : Class)]
 models.Model[if not(cls.ancestors(Class) -> isEmpty())],[cls.getParentClass()/][/if]
+[/template]
+
+[template public getAttributes(cls : Class)]
+[for (field : Property | cls.ownedAttribute) separator('\n')]
+[if (field.association.oclIsUndefined())]
+[field.name/] = models.[field.mapDataType()/]
+[else]
+[/if]
+[/for]
 [/template]
