@@ -1,0 +1,98 @@
+[comment encoding = UTF-8 /]
+[module views('http://www.eclipse.org/uml2/5.0.0/UML')]
+[import com::motxt::main::utils /]
+
+[template public genViews(model : Model)]
+from django.shortcuts import render, redirect
+from django.http import JsonResponse
+from .forms import *
+from .models import *
+from django.apps import apps
+
+def landing_page(request):
+
+    model_info = {}
+    [model.landingPageViews()/]
+
+    return render(request, 'landing_page.html', {'model_info': model_info})
+	
+[for (cls : Class | model.packagedElement -> filter(Class)) separator ('\n')]
+[cls.createViews()/]
+
+[cls.editViews()/]
+
+[cls.readViews()/]
+
+[cls.deleteViews()/]
+[/for]
+
+[/template]
+
+[template public landingPageViews(model : Model)]
+[for (cls : Class | model.getAllClass())]
+    model_info['['/]"[cls.name.toLower()/]"[']'/] = "[cls.name.toTitleCase()/]"
+[/for]
+[/template]
+
+[template public createViews(cls : Class)]
+def create_[cls.name.toSnakeCase()/](request):
+    if request.method == 'POST':
+        form = [cls.name/]Form(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('main:get_[cls.name.toSnakeCase()/]')
+    else:
+        form = [cls.name/]Form()
+    return render(request, 'create_[cls.name.toSnakeCase()/].html', {'form': form})
+[/template]
+
+[template public editViews(cls : Class)]
+def edit_[cls.name.toSnakeCase()/](request, id):
+    [cls.name.toSnakeCase()/]_obj = [cls.name/].objects.get(pk=id)
+    form = [cls.name/]Form(request.POST or None, instance=[cls.name.toSnakeCase()/]_obj)
+    if form.is_valid() and request.method == 'POST':
+        form.save()
+        return redirect('main:get_[cls.name.toSnakeCase()/]')
+
+    return render(request, 'edit_[cls.name.toSnakeCase()/].html', {'form': form})
+[/template]
+
+[template public readViews(cls : Class)]
+def get_[cls.name.toSnakeCase()/](request):
+    [cls.name.toSnakeCase()/]s = [cls.name/].objects.all()
+    all_fields = ['['/]field.name for field in [cls.name/]._meta.get_fields()[']'/]
+    [cls.name.toSnakeCase()/]_data = ['[]'/]
+    
+    for [cls.name.toSnakeCase()/] in [cls.name.toSnakeCase()/]s:
+        [cls.name.toSnakeCase()/]_dict = {}
+        for field_name in all_fields:
+            try:
+                field = [cls.name/]._meta.get_field(field_name)
+                if field.is_relation and field.many_to_many:
+                    related_objects = getattr([cls.name.toSnakeCase()/], field_name).all()
+                    [cls.name.toSnakeCase()/]_dict['[field_name]'/] = ", ".join(['[str(obj) for obj in related_objects]'/]) or "None"
+                else:
+                    [cls.name.toSnakeCase()/]_dict['[field_name]'/] = getattr([cls.name.toSnakeCase()/], field_name)
+            except:
+                [cls.name.toSnakeCase()/]_dict['[field_name]'/] = "N/A"
+        [cls.name.toSnakeCase()/]_data.append(([cls.name.toSnakeCase()/], [cls.name.toSnakeCase()/]_dict))
+    
+    return render(request, '[cls.name.toSnakeCase()/]_list.html', {
+        '[cls.name.toSnakeCase()/]_data': [cls.name.toSnakeCase()/]_data,
+        'fields': all_fields,
+    })
+[/template]
+
+[template public deleteViews(cls : Class)]
+def delete_[cls.name.toSnakeCase()/](request):
+    if request.method == 'POST':
+        object_id = request.POST.get('object_id')
+
+        if object_id is None:
+            return JsonResponse({"error": "ID is required"}, status=400)
+
+        obj = [cls.name.toSnakeCase()/].objects.get(pk=object_id)
+        obj.delete()
+        return redirect('main:get_[cls.name.toSnakeCase()/]')
+    return JsonResponse({"error": "Invalid request method"}, status=405)
+[/template]
