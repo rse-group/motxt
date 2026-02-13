@@ -1,0 +1,16 @@
+[comment encoding = UTF-8 /]
+[module models('http://www.eclipse.org/uml2/5.0.0/UML')]
+[import com::motxt::main::utils/]
+
+[template public models(model : Model)]
+from django.db import models
+
+[for (cls : Class | model.getAllClass())]
+class [cls.name/]([cls.getParentClass()/]):
+	pass    
+[/for]
+[/template]
+
+[template public getParentClass(cls : Class)]
+models.Model[if not(cls.ancestors(Class) -> isEmpty())],[cls.getParentClass()/][/if]
+[/template]

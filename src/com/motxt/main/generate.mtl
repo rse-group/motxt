@@ -1,7 +1,14 @@
 [comment encoding = UTF-8 /]
 [module generate('http://www.eclipse.org/uml2/5.0.0/UML')]
+[import com::motxt::main::models/]
 
 [template public generateElements(model : Model)]
 [comment @main/]
+[model.generateModels()/]
+[/template]
 
+[template public generateModels(model : Model)]
+[file ('models.py', false, 'UTF-8')]
+[model.models()/]
+[/file]
 [/template]
