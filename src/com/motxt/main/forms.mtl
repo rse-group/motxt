@@ -1,0 +1,22 @@
+[comment encoding = UTF-8 /]
+[module forms('http://www.eclipse.org/uml2/5.0.0/UML')]
+[import com::motxt::main::utils/]
+
+
+[template public generateForms(model : Model)]
+[file ('forms.py',false,'UTF-8')]
+from django import forms
+from .models import *
+
+[for (cls : Class | model.getAllClass()) separator ('\n')]
+    [cls.forms() /]
+[/for]
+[/file]
+[/template]
+
+[template public forms(cls : Class)]
+class [cls.name/]Form(forms.ModelForm):
+    class Meta:
+        model = [cls.name/]
+        fields = ('__all__')
+[/template]

@@ -26,4 +26,4 @@ replay_pid*
 /bin
 
 /src-gen/
-
+.settings/

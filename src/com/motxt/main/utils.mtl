@@ -31,4 +31,20 @@
         'models.TextField()'
     endif endif endif endif
 /]
-
+[**
+ * Composite for Composition type
+ * 
+ * Shared for Aggregation type
+ * 
+ * Else Association
+ * 
+*/]
+[query public getRelationType(p : Property): String =
+	if (p.aggregation.toString() = 'composite' ) then
+		'on_delete=models.CASCADE'
+	else if (p.aggregation.toString() = 'shared') then
+		'on_delete = models.SET_NULL, null=True'
+	else 
+		'on_delete=models.CASCADE'
+	endif endif
+/]

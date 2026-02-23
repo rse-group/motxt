@@ -1,0 +1,45 @@
+[comment encoding = UTF-8 /]
+[module urls('http://www.eclipse.org/uml2/5.0.0/UML')]
+[import com::motxt::main::utils /]
+
+[template public generateUrls(model : Model)]
+[file ('urls.py', false, 'UTF-8')]
+"""
+This code is generated using MoTxT,
+checkout more about us on https://motxt.ppl.cs.ui.ac.id
+"""
+
+from django.urls import path
+from .views import (
+    landing_page,
+    [for (cls : Class | model.getAllClass())][cls.getImports() /][/for]
+)
+
+app_name = "main"
+
+urlpatterns = ['['/]
+    path('', landing_page , name="landing_page"),
+    [for (cls : Class | model.getAllClass())]
+    [cls.getURLPattern() /]
+	[/for]
+]
+
+[/file]
+[/template]
+
+[template public getImports(cls : Class)]
+create_[cls.name.toSnakeCase()/],
+get_[cls.name.toSnakeCase()/],
+edit_[cls.name.toSnakeCase()/],
+delete_[cls.name.toSnakeCase()/],
+[/template]
+
+[template public getURLPattern(cls : Class)]
+# Path for [cls.name/]
+path('create-[cls.name.toSnakeCase()/]/', create_[cls.name.toSnakeCase()/], name="create_[cls.name.toSnakeCase()/]"),
+path('get-all-[cls.name.toSnakeCase()/]/', get_[cls.name.toSnakeCase()/], name="get_[cls.name.toSnakeCase()/]"),
+path('edit-[cls.name.toSnakeCase()/]/<int:id>/', edit_[cls.name.toSnakeCase()/], name="edit_[cls.name.toSnakeCase()/]"),
+path('delete-[cls.name.toSnakeCase()/]/', delete_[cls.name.toSnakeCase()/], name="delete_[cls.name.toSnakeCase()/]"),
+
+[/template]
+

@@ -5,22 +5,46 @@
 [template public models(model : Model)]
 from django.db import models
 
-[for (cls : Class | model.getAllClass())]
+[for (cls : Class | model.getAllClass()) separator('\n')]
 class [cls.name/]([cls.getParentClass()/]):
     [cls.getAttributes()/]
-	pass    
+	pass
 [/for]
 [/template]
 
 [template public getParentClass(cls : Class)]
-models.Model[if not(cls.ancestors(Class) -> isEmpty())],[cls.getParentClass()/][/if]
+[if (cls.generalization -> isEmpty())]models.Model[else][cls.generalization.general.name/][/if]
 [/template]
 
 [template public getAttributes(cls : Class)]
-[for (field : Property | cls.ownedAttribute) separator('\n')]
+[for (field : Property | cls.ownedAttribute)]
+[let this:Boolean = (not(field.association.memberEnd->first() = field) and (field.aggregation.oclIsInvalid())) ]
+[let that:Boolean = ((field.association.memberEnd->at(2) = field) and not(field.aggregation.oclIsUndefined()))]
 [if (field.association.oclIsUndefined())]
-[field.name/] = models.[field.mapDataType()/]
-[else]
+[field.name.toLowerCase()/] = models.[field.mapDataType()/]
+[comment][elseif (((field.association.memberEnd->at(2) = field) and not(field.aggregation.oclIsUndefined())))]
+[field.name/][/comment]
+[this/][that/]
+[elseif ((not(field.association.memberEnd->first() = field) and (field.aggregation.oclIsInvalid())) or ((field.association.memberEnd->at(2) = field) and not(field.aggregation.oclIsUndefined())))]
+[field.getRelation()/]
 [/if]
+[/let]
+[/let]
 [/for]
+[/template]
+
+[template public getRelation(p : Property)]
+[let other : Property = p.association.memberEnd->select(r | r <> p)->first()]
+[if (p.upper = 1 and other.upper = 1)]
+[p.name.toLower()/] = models.OneToOneField([p.type.name/], [p.getRelationType()/])
+[elseif ((p.upper = -1 or p.upper > 1) and (other.upper = -1 or other.upper > 1))]
+list_of_[p.name.toTitleCase()/] = models.ManyToManyField([p.type.name/], [p.getRelationType()/])
+[elseif (p.upper = 1 and (other.upper = -1 or other.upper > 1))]
+[p.name.toLowerCase()/]FK = models.ForeignKey([p.type.name/], [p.getRelationType()/])
+[else]
+[comment Case: One-to-Many (Inverse). Django usually does not define a field on the 'One' side. /]
+[comment If you must define it here, it technically mirrors a ForeignKey logic or requires a specific related_name /]
+[p.name.toLowerCase()/]FK = models.ForeignKey([p.type.name/], [p.getRelationType()/], related_name='[p.name.toLowerCase()/]')
+[/if]
+[/let]
 [/template]
