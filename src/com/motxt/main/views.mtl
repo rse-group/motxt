@@ -95,7 +95,7 @@ def delete_[cls.name.toSnakeCase()/](request):
         if object_id is None:
             return JsonResponse({"error": "ID is required"}, status=400)
 
-        obj = [cls.name.toSnakeCase()/].objects.get(pk=object_id)
+        obj = [cls.name.toUpperFirst()/].objects.get(pk=object_id)
         obj.delete()
         return redirect('main:get_[cls.name.toSnakeCase()/]')
     return JsonResponse({"error": "Invalid request method"}, status=405)
