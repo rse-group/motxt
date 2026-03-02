@@ -4,12 +4,12 @@
 
 
 [template public generateForms(model : Model)]
-[file ('forms.py',false,'UTF-8')]
+[file (model.getTargetMain()+'forms.py',false,'UTF-8')]
 from django import forms
 from .models import *
 
 [for (cls : Class | model.getAllClass()) separator ('\n')]
-    [cls.forms() /]
+[cls.forms() /]
 [/for]
 [/file]
 [/template]

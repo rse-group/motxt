@@ -10,16 +10,30 @@
     s.replaceAll('([a-z])([A-Z])', '$1_$2').toLowerCase()
 /]
 
-[query public getAllClass(m : Model) : Set(Class) =
-	m.packagedElement->filter(Class) 
+[query public getAllClass(m : Model) : Sequence(Class) =
+	m.eAllContents(Class) 
 /]
 
 [query public getParentNames(c : Class) : String = 
     c.ancestors(Class).name->sep(', ')->toString()
 /]
 
-[query public mapDataType(p : Property) : String = 
-	if (p.type.name.toLower() = 'string') then 
+[query public targetFolder(m : Model) : String = 
+	m.name+'/'
+/]
+
+[query public getTargetMain(m : Model) : String = 
+	m.targetFolder()+'/main/'
+/]
+
+[query public getTargetProject(m : Model) : String = 
+	m.targetFolder()+m.name+'/'
+/]
+
+[query public mapDataTypeField(p : Property) : String = 
+	if (p.type.oclIsUndefined()) then
+		'models.TextField()'
+	else if (p.type.name.toLower() = 'string') then 
         'models.CharField(max_length=255)'
     else if (p.type.name.toLower() = 'integer') then 
         'models.IntegerField()'
@@ -29,7 +43,22 @@
         'models.FloatField()'
     else 
         'models.TextField()'
-    endif endif endif endif
+    endif endif endif endif endif
+/]
+[query public mapDataType(t : Type): String =
+	if (t.name.oclIsUndefined()) then
+		'None'
+	else if (t.name.toLower() = 'string') then 
+        'str'
+    else if (t.name.toLower() = 'integer') then 
+        'int'
+    else if (t.name.toLower() = 'boolean') then 
+        'bool'
+    else if (t.name.toLower() = 'float') then 
+        'float'
+    else 
+        'str'
+    endif endif endif endif endif 
 /]
 [**
  * Composite for Composition type
@@ -48,3 +77,21 @@
 		'on_delete=models.CASCADE'
 	endif endif
 /]
+
+[query public getParams(m : Operation): OrderedSet(Parameter) =
+	m.ownedParameter->select(p | p.direction.toString()='in')
+/]
+
+[query private getReturn(m : Operation): Sequence(Parameter) =
+m.ownedParameter->select(p | 
+    not p.type.oclIsUndefined()
+	and not p.type.oclIsInvalid()
+	and p.direction.toString() = 'return'
+	and p.type.name <> 'void'
+	and p.name <> 'void'
+)->asSequence()
+/]
+
+[template public getReturnType(m : Operation)]
+[if (not(m.getReturn()->first().oclIsInvalid()))]->[m.getReturn()->first().type.mapDataType()/][/if]
+[/template]

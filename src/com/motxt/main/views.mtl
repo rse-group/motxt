@@ -16,7 +16,8 @@ def landing_page(request):
 
     return render(request, 'landing_page.html', {'model_info': model_info})
 	
-[for (cls : Class | model.packagedElement -> filter(Class)) separator ('\n')]
+[for (cls : Class | model.getAllClass()) separator ('\n')]
+#-------------- methods for Class [cls.name/] ---------------
 [cls.createViews()/]
 
 [cls.editViews()/]
@@ -24,13 +25,16 @@ def landing_page(request):
 [cls.readViews()/]
 
 [cls.deleteViews()/]
+
+[cls.methodViews()/]
+#-------------- end of Class [cls.name/] ----------------
 [/for]
 
 [/template]
 
 [template public landingPageViews(model : Model)]
 [for (cls : Class | model.getAllClass())]
-    model_info['['/]"[cls.name.toLower()/]"[']'/] = "[cls.name.toTitleCase()/]"
+model_info['['/]"[cls.name.toLower()/]"[']'/] = "[cls.name.toTitleCase()/]"
 [/for]
 [/template]
 
@@ -95,4 +99,15 @@ def delete_[cls.name.toSnakeCase()/](request):
         obj.delete()
         return redirect('main:get_[cls.name.toSnakeCase()/]')
     return JsonResponse({"error": "Invalid request method"}, status=405)
+[/template]
+
+[template public methodViews(cls : Class)]
+[for (method : Operation | cls.ownedOperation) separator('\n')]
+#-----method from class [cls.name/] ------
+
+def [method.name/](request, instance_name[for (param : Parameter | method.getParams())], [param.name/] : [param.type.mapDataType()/][/for])[method.getReturnType()/]:
+    # TODO: Auto generated function stub
+    raise NotImplementedError('[method.name/] function is not yet implemented')
+    pass
+[/for]
 [/template]

@@ -3,19 +3,67 @@
 [import com::motxt::main::utils/]
 
 [template public generateHTML(model : Model)]
+[file (model.targetFolder()+'templates/base.html',false,'UTF-8')]
+{% load static %}
+<!DOCTYPE html>
+<!--This code is generated using MoTxT, checkout more about us on https://motxt.ppl.cs.ui.ac.id-->
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		{% block meta %}
+		{% endblock meta %}
+		<link rel="stylesheet" href="{% static 'css/style.css' %}">
+	</head>
+
+    <body>
+        {% block content %}
+        {% endblock content %}
+    </body>
+</html>
+[/file]
 [for (cls : Class | model.getAllClass())]
-[file ('templates/create_' + cls.name.toLowerCase() + '.html', false, 'UTF-8')]
+[file (model.getTargetMain()+'templates/create_' + cls.name.toLowerCase() + '.html', false, 'UTF-8')]
 [cls.createHTML() /]
 [/file]
 [if (cls.ownedAttribute->select(association.oclIsUndefined())->notEmpty())]
-[file ('templates/edit_' + cls.name.toLowerCase() + '.html', false, 'UTF-8')]
+[file (model.getTargetMain()+'templates/edit_' + cls.name.toLowerCase() + '.html', false, 'UTF-8')]
 [cls.editHTML() /]
 [/file]
 [/if]
-[file ('templates/'+cls.name.toLowerCase() + '_list.html', false, 'UTF-8')]
+[file (model.getTargetMain()+'templates/'+cls.name.toLowerCase() + '_list.html', false, 'UTF-8')]
 [cls.getHTML() /]
 [/file]
 [/for]
+[model.landingPage()/]
+[/template]
+
+[template public landingPage(model : Model)]
+[file (model.getTargetMain()+'templates/landing_page.html',false,'UTF-8')]
+{% extends 'base.html' %}
+{% block content %}
+    <h1>Landing Page</h1>
+    <h2>Models Available</h2>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Model Name</th>
+                <th>View</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for model_name, model_label in model_info.items %}
+            <tr>
+                <td>{{ model_label }}</td>
+                {% with url_name="main:get_"|add:model_name %}
+                    <td><a href="{% url url_name %}">View {{ model_label }}</a></td>
+                {% endwith %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock content %}
+[/file]
 [/template]
 
 [template public createHTML(cls : Class)]
@@ -35,6 +83,9 @@
 {% extends 'base.html' %}
 {% load filter_tag %}
 {% block content %}
+	<button>
+		<a href="{% url 'main:landing_page' %}">Back to Home</a>
+	</button>
     <h1>[cls.name/] List</h1>
     <table border="1">
         <thead>

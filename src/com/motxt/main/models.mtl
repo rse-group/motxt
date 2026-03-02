@@ -8,7 +8,7 @@ from django.db import models
 [for (cls : Class | model.getAllClass()) separator('\n')]
 class [cls.name/]([cls.getParentClass()/]):
     [cls.getAttributes()/]
-	pass
+    pass
 [/for]
 [/template]
 
@@ -18,18 +18,11 @@ class [cls.name/]([cls.getParentClass()/]):
 
 [template public getAttributes(cls : Class)]
 [for (field : Property | cls.ownedAttribute)]
-[let this:Boolean = (not(field.association.memberEnd->first() = field) and (field.aggregation.oclIsInvalid())) ]
-[let that:Boolean = ((field.association.memberEnd->at(2) = field) and not(field.aggregation.oclIsUndefined()))]
 [if (field.association.oclIsUndefined())]
-[field.name.toLowerCase()/] = models.[field.mapDataType()/]
-[comment][elseif (((field.association.memberEnd->at(2) = field) and not(field.aggregation.oclIsUndefined())))]
-[field.name/][/comment]
-[this/][that/]
-[elseif ((not(field.association.memberEnd->first() = field) and (field.aggregation.oclIsInvalid())) or ((field.association.memberEnd->at(2) = field) and not(field.aggregation.oclIsUndefined())))]
+[field.name.toSnakeCase()/] =[field.mapDataTypeField()/]
+[elseif ((not(field.association.memberEnd->at(2) = field) and (field.aggregation.oclIsInvalid())) or ((field.association.memberEnd->first() = field) and not(field.aggregation.oclIsUndefined())))]
 [field.getRelation()/]
 [/if]
-[/let]
-[/let]
 [/for]
 [/template]
 

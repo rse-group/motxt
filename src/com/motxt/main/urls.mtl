@@ -3,7 +3,7 @@
 [import com::motxt::main::utils /]
 
 [template public generateUrls(model : Model)]
-[file ('urls.py', false, 'UTF-8')]
+[file (model.name+'/main/urls.py', false, 'UTF-8')]
 """
 This code is generated using MoTxT,
 checkout more about us on https://motxt.ppl.cs.ui.ac.id

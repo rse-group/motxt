@@ -6,6 +6,7 @@
 [import com::motxt::main::forms/]
 [import com::motxt::main::html/]
 [import com::motxt::main::utils/]
+[import com::motxt::main::django/]
 
 [template public generateElements(model : Model)]
 [comment @main/]
@@ -14,16 +15,17 @@
 [model.generateUrls()/]
 [model.generateForms()/]
 [model.generateHTML()/]
+[model.generateDjango()/]
 [/template]
 
 [template public generateModels(model : Model)]
-[file ('models.py', false, 'UTF-8')]
+[file (model.getTargetMain()+'models.py', false, 'UTF-8')]
 [model.models()/]
 [/file]
 [/template]
 
 [template public generateViews(model : Model)]
-[file ('views.py', false, 'UTF-8')]
+[file (model.getTargetMain()+'views.py', false, 'UTF-8')]
 [model.genViews()/]
 [/file]
 [/template]
