@@ -160,7 +160,7 @@ public class Generate extends AbstractAcceleoGenerator {
                 }
 
                 generator.doGenerate(new BasicMonitor());
-                System.out.println("Done Parsing");
+                System.out.println("Generated");
             }
         } catch (IOException e) {
             e.printStackTrace();

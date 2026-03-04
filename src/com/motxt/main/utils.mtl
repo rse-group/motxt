@@ -1,6 +1,6 @@
 [comment encoding = UTF-8 /]
 [module utils('http://www.eclipse.org/uml2/5.0.0/UML')]
-
+[import com::motxt::main::sort/]
 
 [query public toTitleCase(s : String) : String = 
     s.substring(1, 1).toUpper() + s.substring(2).toLower() 
@@ -11,8 +11,9 @@
 /]
 
 [query public getAllClass(m : Model) : Sequence(Class) =
-	m.eAllContents(Class) 
+	m.sort()
 /]
+
 
 [query public getParentNames(c : Class) : String = 
     c.ancestors(Class).name->sep(', ')->toString()
@@ -23,7 +24,7 @@
 /]
 
 [query public getTargetMain(m : Model) : String = 
-	m.targetFolder()+'/main/'
+	m.targetFolder()+'main/'
 /]
 
 [query public getTargetProject(m : Model) : String = 
@@ -41,9 +42,13 @@
         'models.BooleanField(default=False)'
     else if (p.type.name.toLower() = 'float') then 
         'models.FloatField()'
+	else if (p.type.name.toLower() = 'date') then
+		'models.DateField(default=date.today, null=True, blank=True)'
+	else if (p.type.name.toLower() = 'datetime') then
+		'models.DateTimeField(default=timezone.now, null=True, blank=True)'
     else 
         'models.TextField()'
-    endif endif endif endif endif
+    endif endif endif endif endif endif endif
 /]
 [query public mapDataType(t : Type): String =
 	if (t.name.oclIsUndefined()) then
@@ -56,9 +61,13 @@
         'bool'
     else if (t.name.toLower() = 'float') then 
         'float'
+	else if (t.name.toLower() = 'date') then
+		'date'
+	else if (t.name.toLower() = 'datetime') then
+		'datetime'
     else 
         'str'
-    endif endif endif endif endif 
+    endif endif endif endif endif endif endif
 /]
 [**
  * Composite for Composition type
@@ -74,7 +83,7 @@
 	else if (p.aggregation.toString() = 'shared') then
 		'on_delete = models.SET_NULL, null=True'
 	else 
-		'on_delete=models.CASCADE'
+		'on_delete=models.RESTRICT'
 	endif endif
 /]
 

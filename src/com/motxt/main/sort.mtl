@@ -1,0 +1,11 @@
+[comment encoding = UTF-8 /]
+[module sort('http://www.eclipse.org/uml2/5.0.0/UML')]
+
+
+[query public sort(m : Model) : Sequence(Class) = 
+	m.topoSort()
+/]
+
+[query private topoSort(m : Model) : Sequence(Class) =
+	invoke('com.motxt.main.Sort', 'topoSort(java.util.List)', Sequence{m.eAllContents(Class)})
+/]

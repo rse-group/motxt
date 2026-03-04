@@ -4,6 +4,12 @@
 
 [template public models(model : Model)]
 from django.db import models
+[if (not model.allOwnedElements()->filter(TypedElement)->select(type <> null and type.name <> null and type.name.toLower() = 'date')->isEmpty())]
+from datetime import date
+[/if]
+[if (not model.allOwnedElements()->filter(TypedElement)->select(type <> null and type.name <> null and  type.name.toLower() = 'datetime')->isEmpty())]
+from django.utils import timezone
+[/if]
 
 [for (cls : Class | model.getAllClass()) separator('\n')]
 class [cls.name/]([cls.getParentClass()/]):
@@ -19,11 +25,9 @@ class [cls.name/]([cls.getParentClass()/]):
 [template public getAttributes(cls : Class)]
 [for (field : Property | cls.ownedAttribute)]
 [if (field.association.oclIsUndefined())]
-[field.name.toSnakeCase()/] =[field.mapDataTypeField()/]
+[field.name.toSnakeCase()/] = [field.mapDataTypeField()/]
 [elseif ((not(field.association.memberEnd->at(2) = field) and (field.aggregation.oclIsInvalid())) or ((field.association.memberEnd->first() = field) and not(field.aggregation.oclIsUndefined())))]
-[field.getRelation()/]
-[/if]
-[/for]
+[field.getRelation()/][/if][/for]
 [/template]
 
 [template public getRelation(p : Property)]

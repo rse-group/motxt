@@ -8,6 +8,14 @@ from django.http import JsonResponse
 from .forms import *
 from .models import *
 from django.apps import apps
+[if (not model.allOwnedElements()->filter(TypedElement)->select(type <> null and type.name <> null and type.name.toLower() = 'date')->isEmpty())]
+from datetime import date
+[/if]
+[if (not model.allOwnedElements()->filter(TypedElement)->select(type <> null and type.name <> null and  type.name.toLower() = 'datetime')->isEmpty())]
+from django.utils import timezone
+from datetime import datetime
+[/if]
+
 
 def landing_page(request):
 
@@ -17,7 +25,7 @@ def landing_page(request):
     return render(request, 'landing_page.html', {'model_info': model_info})
 	
 [for (cls : Class | model.getAllClass()) separator ('\n')]
-#-------------- methods for Class [cls.name/] ---------------
+#-------------- CRUD methods for Class [cls.name/] ---------------
 [cls.createViews()/]
 
 [cls.editViews()/]
