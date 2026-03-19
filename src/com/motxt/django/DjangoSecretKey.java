@@ -1,4 +1,4 @@
-package com.motxt.main;
+package com.motxt.django;
 
 import java.security.SecureRandom;
 

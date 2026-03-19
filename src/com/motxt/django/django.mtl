@@ -1,7 +1,7 @@
 [comment encoding = UTF-8 /]
 [module django('http://www.eclipse.org/uml2/5.0.0/UML')]
 
-[import com::motxt::main::secretKey/]
+[import com::motxt::django::secretKey/]
 [import com::motxt::main::utils/]
 
 

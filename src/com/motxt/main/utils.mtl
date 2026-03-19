@@ -31,6 +31,10 @@
 	m.targetFolder()+m.name+'/'
 /]
 
+[query public getTargetStatic(m : Model) : String =
+	m.targetFolder()+'static/'
+/]
+
 [query public mapDataTypeField(p : Property) : String = 
 	if (p.type.oclIsUndefined()) then
 		'models.TextField()'

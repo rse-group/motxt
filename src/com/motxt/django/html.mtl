@@ -1,0 +1,357 @@
+[comment encoding = UTF-8 /]
+[module html('http://www.eclipse.org/uml2/5.0.0/UML')]
+[import com::motxt::main::utils/]
+
+[template public generateHTML(model : Model)]
+[file (model.targetFolder()+'templates/base.html',false,'UTF-8')]
+{% load static %}
+<!doctype html>
+<html lang="en" class="">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    {% block meta %} {% endblock meta %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}" />
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              primary: {
+                50: '#eff6ff',
+                100: '#dbeafe',
+                500: '#3b82f6',
+                600: '#2563eb',
+                700: '#1d4ed8',
+              },
+              secondary: '#475569',
+            }
+          }
+        }
+      }
+    </script>
+
+    <script>
+      (function () {
+        const stored = localStorage.getItem('theme');
+        if (stored === 'dark' || (!stored && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+          document.documentElement.classList.add('dark');
+        }
+      })();
+    </script>
+  </head>
+
+  <body class="bg-slate-300 dark:bg-slate-900 transition-colors duration-200">
+    {% block navbar %}
+    <nav class="bg-slate-100 dark:bg-slate-800 border-b-2 border-primary-500 shadow-sm mb-8 mx-4">
+      <div class="max-w-dvw mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between h-16">
+          <div class="flex-shrink-0 flex items-center">
+            <span class="text-xl font-bold text-primary-600 dark:text-blue-400">[model.name/]</span>
+          </div>
+          <div class="flex items-center gap-4">
+            <div class="text-secondary dark:text-slate-300 hover:text-primary-600 dark:hover:text-blue-400 transition-colors">
+              {% block back_to_home %} {% endblock back_to_home %}
+            </div>
+            <button
+              onclick="toggleTheme()"
+              class="rounded-md p-2 text-secondary dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+              aria-label="Toggle dark mode"
+            >
+              <!-- Sun icon (shown in dark mode) -->
+              <svg class="h-5 w-5 hidden dark:block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m8.66-9h-1M4.34 12h-1m15.07-6.07-.71.71M5.64 18.36l-.71.71m12.73 0-.71-.71M5.64 5.64l-.71-.71M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z" />
+              </svg>
+              <!-- Moon icon (shown in light mode) -->
+              <svg class="h-5 w-5 block dark:hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </nav>
+    {% endblock navbar %}
+
+    <main>{% block content %} {% endblock content %}</main>
+
+    <script>
+      function toggleTheme() {
+        const html = document.documentElement;
+        if (html.classList.contains('dark')) {
+          html.classList.remove('dark');
+          localStorage.setItem('theme', 'light');
+        } else {
+          html.classList.add('dark');
+          localStorage.setItem('theme', 'dark');
+        }
+      }
+    </script>
+  </body>
+</html>
+[/file]
+[for (cls : Class | model.getAllClass())]
+[file (model.getTargetMain()+'templates/create_' + cls.name.toLowerCase() + '.html', false, 'UTF-8')]
+[cls.createHTML() /]
+[/file]
+[if (cls.ownedAttribute->select(association.oclIsUndefined())->notEmpty())]
+[file (model.getTargetMain()+'templates/edit_' + cls.name.toLowerCase() + '.html', false, 'UTF-8')]
+[cls.editHTML() /]
+[/file]
+[/if]
+[file (model.getTargetMain()+'templates/'+cls.name.toLowerCase() + '_list.html', false, 'UTF-8')]
+[cls.getHTML() /]
+[/file]
+[/for]
+[model.staticFiles()/]
+[model.landingPage()/]
+[/template]
+
+[template public landingPage(model : Model)]
+[file (model.getTargetMain()+'templates/landing_page.html',false,'UTF-8')]
+{% extends 'base.html' %}
+{% block content %}
+    <section class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+        <header class="mb-6">
+            <h1 class="text-3xl font-bold tracking-tight text-primary-700 dark:text-blue-300">Landing Page</h1>
+            <p class="mt-2 text-secondary dark:text-slate-400">Browse available models and open their detail views.</p>
+        </header>
+
+        <article class="overflow-hidden rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 shadow-sm">
+            <div class="border-b border-slate-200 dark:border-slate-700 px-4 py-3 sm:px-6">
+                <h2 class="text-lg font-semibold text-primary-600 dark:text-blue-400">Models Available</h2>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-slate-200 dark:divide-slate-700" aria-label="Available models table">
+                    <caption class="sr-only">List of available models and links to view each model.</caption>
+                    <thead class="bg-primary-100 dark:bg-blue-900/40">
+                        <tr>
+                            <th scope="col" class="px-4 py-3 text-left text-sm font-semibold text-secondary dark:text-slate-300 sm:px-6">Model Name</th>
+                            <th scope="col" class="px-4 py-3 text-left text-sm font-semibold text-secondary dark:text-slate-300 sm:px-6">View</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200 dark:divide-slate-700 bg-slate-100 dark:bg-slate-800">
+                        {% for model_name, model_label in model_info.items %}
+                            <tr class="hover:bg-slate-200/70 dark:hover:bg-slate-700/30 transition-colors">
+                                <td class="px-4 py-3 text-sm text-secondary dark:text-slate-300 sm:px-6">{{ model_label }}</td>
+                                {% with url_name="main:get_"|add:model_name %}
+                                    <td class="px-4 py-3 text-sm sm:px-6">
+                                        <a
+                                            href="{% url url_name %}"
+                                            class="inline-flex items-center rounded-md px-3 py-1.5 font-medium text-primary-600 dark:text-blue-400 hover:bg-primary-50 dark:hover:bg-slate-700 hover:text-primary-700 dark:hover:text-blue-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
+                                        >
+                                            View {{ model_label }}
+                                        </a>
+                                    </td>
+                                {% endwith %}
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="2" class="px-4 py-6 text-center text-sm text-secondary dark:text-slate-400 sm:px-6">No models available.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </article>
+    </section>
+{% endblock content %}
+[/file]
+[/template]
+
+[template public createHTML(cls : Class)]
+{% extends 'base.html' %}
+{% block content %}
+<div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="bg-white shadow-md border border-gray-200 rounded-xl p-8">
+        <h1 class="text-2xl font-bold text-gray-900 mb-6 text-center">Create [cls.name/]</h1>
+        
+        <form method="POST" class="space-y-6">
+            {% csrf_token %}
+            
+            <div class="django-form-wrapper space-y-4 text-gray-700">
+                {{ form.as_p }}
+            </div>
+            
+            <div class="flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t border-gray-100">
+                <button type="button" onclick="history.back()" class="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    Cancel
+                </button>
+                <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    Create [cls.name/]
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock content %}
+[/template]
+
+[template public getHTML(cls : Class)]
+[let has_edit : Boolean = cls.ownedAttribute->select(association.oclIsUndefined())->notEmpty()]
+{% extends 'base.html' %}
+{% load filter_tag %}
+{% block content %}
+    <section class="mx-4 md:mx-8 lg:mx-12">
+        <header class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+                <h1 class="text-3xl font-bold tracking-tight text-primary-700 dark:text-blue-300">[cls.name/] List</h1>
+                <p class="mt-2 text-secondary dark:text-slate-400">Manage existing [cls.name/] records.</p>
+            </div>
+            <div class="flex flex-wrap gap-2">
+                <a href="{% url 'main:landing_page' %}" class="inline-flex items-center rounded-md border border-slate-300 dark:border-slate-600 bg-slate-100 dark:bg-slate-800 px-4 py-2 text-sm font-medium text-secondary dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2">
+                    Back to Home
+                </a>
+                <a href="{% url 'main:create_[cls.name.toSnakeCase()/]' %}" class="inline-flex items-center rounded-md bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2">
+                    Create New [cls.name/]
+                </a>
+            </div>
+        </header>
+        <article class="overflow-hidden rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 shadow-sm">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-slate-200 dark:divide-slate-700" aria-label="[cls.name/] list table">
+                    <thead class="bg-primary-100 dark:bg-blue-900/40">
+                        <tr>
+                            {% for field in fields %}
+                                <th scope="col" class="px-4 py-3 text-left text-sm font-semibold text-secondary dark:text-slate-300 sm:px-6">{{ field }}</th>
+                            {% endfor %}
+                            <th scope="col" class="px-4 py-3 text-left text-sm font-semibold text-secondary dark:text-slate-300 sm:px-6">Action</th>
+                        </tr>
+                    </thead>
+        <tbody class="divide-y divide-slate-200 dark:divide-slate-700 bg-slate-100 dark:bg-slate-800">
+            {% for [cls.name.toSnakeCase()/], [cls.name.toSnakeCase()/]_dict in [cls.name.toSnakeCase()/]_data %}
+            <tr class="hover:bg-slate-200/70 dark:hover:bg-slate-700/30 transition-colors">        
+            {% for field in fields %}
+                <td class="px-4 py-3 text-sm text-secondary dark:text-slate-300 sm:px-6">{{ [cls.name.toSnakeCase()/]_dict|get_item:field }}</td>
+            {% endfor -%}
+                <td class="px-4 py-3 text-sm sm:px-6">
+                    <div class="flex gap-2">
+            [if (has_edit)]
+                        <a href="{% url 'main:edit_[cls.name.toSnakeCase()/]' [cls.name.toSnakeCase()/].pk %}" class="inline-flex items-center rounded-md border border-slate-300 dark:border-slate-600 px-3 py-1.5 font-medium text-primary-600 dark:text-blue-400 hover:bg-primary-50 dark:hover:bg-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2">
+                            <button>Edit</button>
+                        </a>
+            [/if]
+                        <form action="{% url 'main:delete_[cls.name.toSnakeCase()/]' %}" method="POST">
+                            {% csrf_token %}
+                            <input type="hidden" name="object_id" value="{{ [cls.name.toSnakeCase()/].id }}">
+                            <button type="submit" class="inline-flex items-center rounded-md border border-red-300 dark:border-red-700 px-3 py-1.5 font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2">Delete</button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="{{ fields|length|add:2 }}" class="px-4 py-6 text-center text-sm text-secondary dark:text-slate-400 sm:px-6">No [cls.name.toSnakeCase()/]s to display.</td>
+            </tr>
+            {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </article>
+    </section>
+{% endblock content %}
+[/let]
+[/template]
+
+[template public editHTML(cls : Class)]
+{% extends 'base.html' %}
+{% block meta %}
+<title>Edit [cls.name/]</title>
+{% endblock meta %}
+{% block content %}
+    <section class="mx-4 py-8 sm:py-12">
+        <div class="mx-auto max-w-2xl">
+            <article class="overflow-hidden rounded-lg border border-primary-100 bg-white shadow-sm">
+                <header class="border-b border-primary-100 px-6 py-4">
+                    <h1 class="text-2xl font-bold text-primary-700">Edit [cls.name/]</h1>
+                    <p class="mt-1 text-sm text-secondary">Update the [cls.name.toLower()/] details below.</p>
+                </header>
+
+                <form method="POST" class="space-y-6 px-6 py-6">
+                    {% csrf_token %}
+
+                    <div class="django-form-wrapper space-y-4 text-secondary">
+                        {{ form.as_p }}
+                    </div>
+
+                    <div class="flex flex-col-reverse gap-3 border-t border-primary-100 pt-4 sm:flex-row sm:justify-end">
+                        <button type="button" onclick="history.back()" class="inline-flex justify-center rounded-md border border-primary-200 bg-white px-4 py-2 text-sm font-medium text-secondary hover:bg-primary-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2">
+                            Cancel
+                        </button>
+                        <button type="submit" class="inline-flex justify-center rounded-md bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2">
+                            Save Changes
+                        </button>
+                    </div>
+                </form>
+            </article>
+        </div>
+    </section>
+{% endblock content %}
+[/template]
+
+[template public staticFiles(model : Model)]
+[file (model.getTargetStatic()+'css/style.css',false,'UTF-8')]
+[model.css()/]
+[/file]
+[file (model.getTargetStatic()+'js/',false,'UTF-8')]
+[/file]
+[file (model.getTargetStatic()+'img/',false,'UTF-8')]
+[/file]
+[/template]
+
+
+[template private css(model : Model)]
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Django form field styling (complements the @apply rules in base.html) */
+.django-form-wrapper input,
+.django-form-wrapper select,
+.django-form-wrapper textarea {
+  margin-top: 0.25rem;
+  display: block;
+  width: 100%;
+  border-radius: 0.375rem;
+  border: 1px solid #d1d5db;
+  padding: 0.5rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.django-form-wrapper input:focus,
+.django-form-wrapper select:focus,
+.django-form-wrapper textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+}
+
+.django-form-wrapper p {
+  margin-bottom: 1rem;
+}
+
+/* Dark mode form fields */
+.dark .django-form-wrapper input,
+.dark .django-form-wrapper select,
+.dark .django-form-wrapper textarea {
+  background-color: #1e293b;
+  border-color: #475569;
+  color: #e2e8f0;
+}
+
+.dark .django-form-wrapper input:focus,
+.dark .django-form-wrapper select:focus,
+.dark .django-form-wrapper textarea:focus {
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.3);
+}
+
+[/template]
