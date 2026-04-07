@@ -1,0 +1,85 @@
+[comment encoding = UTF-8 /]
+[module services('http://www.eclipse.org/uml2/5.0.0/UML')]
+[import com::motxt::main::utils/]
+[import com::motxt::fastapi::models/]
+
+[template public generateServices(model : Model)]
+[file (model.getFastAPITargetApp()+'services/__init__.py', false, 'UTF-8')]
+
+[/file]
+[for (cls : Class | model.getAllClass()) separator('\n')]
+[file (model.getFastAPITargetApp()+'services/'+cls.name.toSnakeCase()+'_service.py', false, 'UTF-8')]
+from fastapi import HTTPException
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
+
+from src.dto.[cls.name.toSnakeCase()/] import [cls.name/]Create, [cls.name/]Update, [cls.name/]Read
+from src.models.[cls.name.toSnakeCase()/] import [cls.name/]
+
+
+def create_[cls.name.toLower()/](db: Session, payload: [cls.name/]Create) -> [cls.name/]:
+    [cls.name.toLower()/] = [cls.name/](**payload.model_dump())
+    db.add([cls.name.toLower()/])
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=400, detail="Invalid id or duplicate relation")
+    db.refresh([cls.name.toLower()/])
+    return [cls.name.toLower()/]
+
+
+def list_[cls.name.toLower()/]s(db: Session) -> list['['/][cls.name/]]:
+    return db.query([cls.name/]).all()
+
+
+def get_[cls.name.toLower()/](db: Session, [cls.name.toLower()/]_id: int) -> [cls.name/]:
+    [cls.name.toLower()/] = db.get([cls.name/], [cls.name.toLower()/]_id)
+    if not [cls.name.toLower()/]:
+        raise HTTPException(status_code=404, detail="[cls.name/] not found")
+    return [cls.name.toLower()/]
+
+
+def update_[cls.name.toLower()/](db: Session, [cls.name.toLower()/]_id: int, payload: [cls.name/]Update) -> [cls.name/]:
+    [cls.name.toLower()/] = db.get([cls.name/], [cls.name.toLower()/]_id)
+    if not [cls.name.toLower()/]:
+        raise HTTPException(status_code=404, detail="[cls.name/] not found")
+
+    for key, value in payload.model_dump().items():
+        setattr([cls.name.toLower()/], key, value)
+
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=400, detail="Invalid [cls.name.toLower()/] or duplicate relation")
+    db.refresh([cls.name.toLower()/])
+    return [cls.name.toLower()/]
+
+
+def delete_[cls.name.toLower()/](db: Session, [cls.name.toLower()/]_id: int) -> None:
+    [cls.name.toLower()/] = db.get([cls.name/], [cls.name.toLower()/]_id)
+    if not [cls.name.toLower()/]:
+        raise HTTPException(status_code=404, detail="[cls.name/] not found")
+
+    db.delete([cls.name.toLower()/])
+    db.commit()
+
+[cls.methodServices()/]
+
+[/file]
+[/for]
+[/template]
+
+[template public methodServices(cls : Class)]
+[for (method : Operation | cls.ownedOperation) separator('\n')]
+#-----method from class [cls.name/] ------
+
+def [method.name.toSnakeCase()/](db: Session, [cls.name.toLower()/]_id: int[for (param : Parameter | method.getParams())], [param.name.toSnakeCase()/] : [param.type.mapDataType()/][/for])[method.getReturnType()/]:
+    [cls.name.toLower()/] = db.get([cls.name/], [cls.name.toLower()/]_id)
+    if not [cls.name.toLower()/]:
+        raise HTTPException(status_code=404, detail="[cls.name/] not found")
+
+    raise NotImplementedError('[method.name/] function is not yet implemented')
+[/for]
+[/template]

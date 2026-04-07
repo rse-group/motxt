@@ -1,0 +1,138 @@
+[comment encoding = UTF-8 /]
+[module models('http://www.eclipse.org/uml2/5.0.0/UML')]
+[import com::motxt::main::utils/]
+
+[template public generateFastAPIModels(model : Model)]
+[file (model.getFastAPITargetApp()+'models/__init__.py', false, 'UTF-8')]
+[for (cls : Class | model.getAllClass())]
+from src.models.[cls.name.toSnakeCase()/] import [cls.name/]
+[/for]
+[/file]
+
+[for (cls : Class | model.getAllClass()) separator('\n')]
+[file (model.getFastAPITargetApp()+'models/'+cls.name.toSnakeCase()+'.py', false, 'UTF-8')]
+[cls.fastapiModel(model)/]
+[/file]
+[/for]
+[/template]
+
+[template public fastapiModel(cls : Class, model : Model)]
+[if (not cls.allOwnedElements()->filter(TypedElement)->select(type <> null and type.name <> null and (type.name.toLower() = 'date' or type.name.toLower() = 'datetime'))->isEmpty())]
+from datetime import date, datetime, timezone
+[/if]
+
+from sqlalchemy import [if (not cls.allOwnedElements()->filter(TypedElement)->select(type <> null and type.name <> null and type.name.toLower() = 'boolean')->isEmpty())]Boolean, [/if]Date, DateTime, Float, ForeignKey, Integer, String
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+[if (not cls.generalization->isEmpty())]
+from src.models.[cls.generalization.general.name.toSnakeCase()/] import [cls.generalization.general.name/]
+[/if]
+from src.database import Base
+
+
+class [cls.name/]([cls.getParentClass()/]):
+	__tablename__ = "[cls.getTableName()/]"
+
+	[cls.getAttributes(model)/]
+[/template]
+
+[template public fastapiModels(model : Model)]
+[if (not model.allOwnedElements()->filter(TypedElement)->select(type <> null and type.name <> null and (type.name.toLower() = 'date' or type.name.toLower() = 'datetime'))->isEmpty())]
+from datetime import date, datetime
+[/if]
+
+from sqlalchemy import [if (not model.allOwnedElements()->filter(TypedElement)->select(type <> null and type.name <> null and type.name.toLower() = 'boolean')->isEmpty())]Boolean, [/if]Date, DateTime, Float, ForeignKey, Integer, String
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from app.database import Base
+
+[for (cls : Class | model.getAllClass()) separator('\n')]
+class [cls.name/]([cls.getParentClass()/]):
+	__tablename__ = "[cls.getTableName()/]"
+
+	[cls.getAttributes(model)/]
+[/for]
+[/template]
+
+[template public getParentClass(cls : Class)]
+[if (cls.generalization -> isEmpty())]Base[else][cls.generalization.general.name/][/if]
+[/template]
+
+[query public getTableName(cls : Class) : String =
+	if (cls.name.toLower().endsWith('s')) then cls.name.toLower() else cls.name.toLower() + 's' endif
+/]
+
+[query public hasChildren(cls : Class, model : Model) : Boolean =
+	model.getAllClass()->exists(c | c.generalization->exists(g | g.general = cls))
+/]
+
+[query public getPolymorphicIdentity(cls : Class) : String =
+	cls.name.toSnakeCase()
+/]
+
+[query public getRelationName(p : Property) : String =
+	if (p.isToMany()) then
+		if (p.getRoleName().endsWith('s')) then p.getRoleName() else p.getRoleName() + 's' endif
+	else
+		p.getRoleName()
+	endif
+/]
+
+[query public getFieldDataType(p : Property) : String =
+	if (p.name.toLower() = 'balance') then
+		': Mapped[float] = mapped_column(Float, default=0)'
+	else
+		p.mapDataTypeFieldFastAPI()
+	endif
+/]
+
+[template public getAttributes(cls : Class, model : Model)]
+[cls.getIdField()/]
+[for (field : Property | cls.ownedAttribute->select(f | f.association.oclIsUndefined() and f.name.toLower() <> 'id'))]
+[field.name.toSnakeCase()/][field.getFieldDataType()/]
+[/for]
+[for (field : Property | cls.ownedAttribute->select(p | p.association->notEmpty() and p.shouldOwnForeignKey()))]
+[field.getForeignKeyField()/]
+[/for]
+[if (cls.hasChildren(model))]
+account_type: Mapped['['/]str] = mapped_column(String(50), default="[cls.getPolymorphicIdentity()/]", nullable=False)
+[/if]
+[for (field : Property | cls.ownedAttribute->select(p | p.association->notEmpty()))]
+[field.getRelation()/]
+[/for]
+[if (cls.hasChildren(model))]
+__mapper_args__ = {
+	"polymorphic_on": account_type,
+	"polymorphic_identity": "[cls.getPolymorphicIdentity()/]",
+}
+[/if]
+[if (not cls.generalization->isEmpty())]
+__mapper_args__ = {
+	"polymorphic_identity": "[cls.getPolymorphicIdentity()/]",
+}
+[/if]
+[/template]
+
+[template public getIdField(cls : Class)]
+[if (cls.generalization -> isEmpty())]
+id: Mapped['['/]int] = mapped_column(primary_key=True, index=True)
+[else]
+id: Mapped['['/]int] = mapped_column(ForeignKey("[cls.generalization.general.name.toLower()/]s.id"), primary_key=True)
+[/if]
+[/template]
+
+[template public getForeignKeyField(p : Property)]
+[let other : Property = p.association.memberEnd->select(r | r <> p)->first()]
+[p.getForeignKeyName()/]: Mapped['['/][p.getForeignKeyPythonType()/]] = mapped_column(ForeignKey("[if (p.type.name.toLower().endsWith('s'))][p.type.name.toLower()/][else][p.type.name.toLower()/]s[/if].id")[if (p.isOneToOne())], unique=True[/if], nullable=[p.isNullable()/])
+[/let]
+[/template]
+
+[template public getRelation(p : Property)]
+[let other : Property = p.association.memberEnd->select(r | r <> p)->first()]
+[if (p.isToMany())]
+[p.getRelationName()/]: Mapped['['/]list['['/]"[p.type.name/]"]] = relationship(back_populates="[other.getRelationName()/]"[if (p.isCompositeToMany())], cascade="all, delete"[/if])
+[else]
+[p.getRelationName()/]: Mapped['['/]"[p.type.name/][if (p.isOptionalToOne())] | None[/if]"] = relationship(back_populates="[other.getRelationName()/]"[if (p.isInverseSideOfOneToOne())], uselist=False[/if])
+[/if]
+[/let]
+[/template]

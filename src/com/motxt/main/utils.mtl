@@ -14,7 +14,6 @@
 	m.sort()
 /]
 
-
 [query public getParentNames(c : Class) : String = 
     c.ancestors(Class).name->sep(', ')->toString()
 /]
@@ -23,7 +22,7 @@
 	m.name+'/'
 /]
 
-[query public getTargetMain(m : Model) : String = 
+[query public getDjangoTargetMain(m : Model) : String = 
 	m.targetFolder()+'main/'
 /]
 
@@ -31,11 +30,15 @@
 	m.targetFolder()+m.name+'/'
 /]
 
-[query public getTargetStatic(m : Model) : String =
+[query public getDjangoTargetStatic(m : Model) : String =
 	m.targetFolder()+'static/'
 /]
 
-[query public mapDataTypeField(p : Property) : String = 
+[query public getFastAPITargetApp(m : Model) : String =
+	m.targetFolder()+'src/'
+/]
+
+[query public mapDataTypeFieldDjango(p : Property) : String = 
 	if (p.type.oclIsUndefined()) then
 		'models.TextField()'
 	else if (p.type.name.toLower() = 'string') then 
@@ -54,6 +57,27 @@
         'models.TextField()'
     endif endif endif endif endif endif endif
 /]
+
+[query public mapDataTypeFieldFastAPI(p : Property) : String = 
+	if (p.type.oclIsUndefined()) then
+		': Mapped[str] = mapped_column(Text, nullable=False)'
+	else if (p.type.name.toLower() = 'string') then 
+        ': Mapped[str] = mapped_column(String(255), nullable=False)'
+    else if (p.type.name.toLower() = 'integer') then 
+        ': Mapped[int] = mapped_column(Integer, nullable=False)'
+    else if (p.type.name.toLower() = 'boolean') then 
+        ': Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)'
+    else if (p.type.name.toLower() = 'float') then 
+        ': Mapped[float] = mapped_column(Float, nullable=False)'
+	else if (p.type.name.toLower() = 'date') then
+		': Mapped[date] = mapped_column(Date, default=date.today, nullable=False)'
+	else if (p.type.name.toLower() = 'datetime') then
+		': Mapped[datetime] = mapped_column(DateTime, default=datetime.now(timezone.utc), nullable=False)'
+    else 
+        'models.TextField()'
+    endif endif endif endif endif endif endif
+/]
+
 [query public mapDataType(t : Type): String =
 	if (t.name.oclIsUndefined()) then
 		'None'
@@ -72,6 +96,26 @@
     else 
         'str'
     endif endif endif endif endif endif endif
+/]
+
+[query public mapDataTypeInputHTML(p : Property) : String =
+	if (p.type.oclIsUndefined()) then
+		'text'
+	else if (p.type.name.toLower() = 'string') then
+		'text'
+	else if (p.type.name.toLower() = 'integer') then
+		'number'
+	else if (p.type.name.toLower() = 'float') then
+		'number'
+	else if (p.type.name.toLower() = 'date') then
+		'date'
+	else if (p.type.name.toLower() = 'datetime') then
+		'datetime-local'
+	else if (p.type.name.toLower() = 'boolean') then
+		'checkbox'
+	else
+		'text'
+	endif endif endif endif endif endif endif
 /]
 [**
  * Composite for Composition type
@@ -108,3 +152,78 @@ m.ownedParameter->select(p |
 [template public getReturnType(m : Operation)]
 [if (not(m.getReturn()->first().oclIsInvalid()))]->[m.getReturn()->first().type.mapDataType()/][/if]
 [/template]
+
+[query public getRoleName(p : Property) : String =
+	if (p.name.oclIsUndefined() or p.name = '') then
+		p.type.name.toSnakeCase()
+	else
+		p.name.toSnakeCase()
+	endif
+/]
+
+[query public isToMany(p : Property) : Boolean =
+	p.upper = -1 or p.upper > 1
+/]
+
+[query public isOneToOne(p : Property) : Boolean =
+	p.upper = 1 and p.association.memberEnd->select(r | r <> p)->first().upper = 1
+/]
+
+[query public isCompositeToMany(p : Property) : Boolean =
+	p.isToMany() and p.association.memberEnd->select(r | r <> p)->first().aggregation = AggregationKind::composite
+/]
+
+[query public isSharedAggregation(p : Property) : Boolean =
+	p.association->notEmpty() and p.aggregation = AggregationKind::shared
+/]
+
+[query public shouldOwnForeignKey(p : Property) : Boolean =
+	if (p.association->isEmpty()) then
+		false
+	else
+		let other : Property = p.association.memberEnd->select(r | r <> p)->first() in
+			(
+				(p.upper = 1 and (other.upper = -1 or other.upper > 1))
+				or
+				(p.upper = 1 and other.upper = 1 and p.association.memberEnd->first() = p)
+			)
+	endif
+/]
+
+[query public getForeignKeyName(p : Property) : String =
+	p.getRoleName() + '_id'
+/]
+
+[query public getForeignKeyPythonType(p : Property) : String =
+	let other : Property = p.association.memberEnd->select(r | r <> p)->first() in
+		if (p.lower = 0 or other.isSharedAggregation() or (other.isOneToOne() and not other.shouldOwnForeignKey())) then 'int | None' else 'int' endif
+/]
+
+[query public isNullable(p : Property) : String =
+	let other : Property = p.association.memberEnd->select(r | r <> p)->first() in
+		if (p.lower = 0 or other.isSharedAggregation() or (other.isOneToOne() and not other.shouldOwnForeignKey())) then 'True' else 'False' endif
+/]
+
+[query public isOptionalToOne(p : Property) : Boolean =
+	if (p.isToMany()) then
+		false
+	else if (p.lower = 0) then
+		true
+	else if (p.association->isEmpty()) then
+		false
+	else
+		let other : Property = p.association.memberEnd->select(r | r <> p)->first() in
+			(p.isOneToOne() and not p.shouldOwnForeignKey()) or (p.shouldOwnForeignKey() and other.lower = 0) or p.isSharedAggregation()
+		endif
+	endif endif
+/]
+
+[query public isInverseSideOfOneToOne(p : Property) : Boolean =
+	if (p.isToMany()) then
+		false
+	else if (p.association->isEmpty()) then
+		false
+	else
+		p.isOneToOne() and not p.shouldOwnForeignKey()
+	endif endif
+/]

@@ -1,0 +1,237 @@
+[comment encoding = UTF-8 /]
+[module fastapi('http://www.eclipse.org/uml2/5.0.0/UML')]
+[import com::motxt::main::utils/]
+[import com::motxt::fastapi::models/]
+[import com::motxt::fastapi::services/]
+[import com::motxt::fastapi::routers/]
+
+[template public generateFastAPI(model : Model)]
+[model.requirements()/]
+[model.generateRunBat()/]
+[model.generateRunSh()/]
+[model.generateFastAPIApp()/]
+[model.generateServices()/]
+[model.generateRouters()/]
+[model.generateMain()/]
+[model.fastapiSchemas()/]
+[/template]
+
+[template private requirements(model : Model)]
+[file (model.targetFolder()+'requirements.txt', false, 'UTF-8')]
+fastapi
+uvicorn
+sqlalchemy
+pydantic
+[/file]
+[/template]
+
+[template private generateRunBat(model : Model)]
+[file (model.targetFolder()+'run.bat', false, 'UTF-8')]
+@echo off
+setlocal
+
+set "VENV_DIR=env"
+
+if not exist "%VENV_DIR%\Scripts\python.exe" (
+		echo Creating virtual environment...
+		py -m venv "%VENV_DIR%"
+)
+
+call "%VENV_DIR%\Scripts\activate.bat"
+
+if exist "requirements.txt" (
+		pip install -r requirements.txt
+) else (
+		pip install fastapi uvicorn sqlalchemy pydantic
+)
+
+uvicorn src.main:app --reload
+[/file]
+[/template]
+
+[template private generateRunSh(model : Model)]
+[file (model.targetFolder()+'run.sh', false, 'UTF-8')]
+#!/usr/bin/env bash
+
+set -e
+
+VENV_DIR="env"
+
+if ['['/] ! -f "$VENV_DIR/bin/python" ]; then
+	echo "Creating virtual environment..."
+	python3 -m venv "$VENV_DIR"
+fi
+
+source "$VENV_DIR/bin/activate"
+
+if ['['/] -f requirements.txt ]; then
+	pip install -r requirements.txt
+else
+	pip install fastapi uvicorn sqlalchemy pydantic
+fi
+
+uvicorn src.main:app --reload
+[/file]
+[/template]
+
+[template public generateMain(model : Model)]
+[file (model.getFastAPITargetApp()+'main.py', false, 'UTF-8')]
+from fastapi import FastAPI
+from src.routers import [for (cls : Class | model.getAllClass()) separator(', ')] [cls.name.toSnakeCase()/]s[/for]
+
+from src.database import Base, engine 
+
+Base.metadata.create_all(bind=engine)
+
+app = FastAPI(title="[model.name.toSnakeCase()/] API", version="1.0.0")
+
+
+@app.get("/")
+def root():
+    return {"message": "[model.name.toSnakeCase()/] FastAPI is running"}
+
+[for (cls : Class | model.getAllClass())]
+app.include_router([cls.name.toSnakeCase()/]s.router)
+[/for]
+[/file]
+[/template]
+
+[template public generateFastAPIApp(model : Model)]
+[file (model.getFastAPITargetApp()+'__init__.py', false, 'UTF-8')]
+
+[/file]
+[file (model.getFastAPITargetApp()+'database.py', false, 'UTF-8')]
+from sqlalchemy import create_engine
+from sqlalchemy.orm import declarative_base, sessionmaker
+
+DATABASE_URL = "sqlite:///./[model.name.toLower()/].db"
+
+engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+Base = declarative_base()
+[/file]
+[file (model.getFastAPITargetApp()+'deps.py', false, 'UTF-8')]
+from collections.abc import Generator
+
+from sqlalchemy.orm import Session
+
+from src.database import SessionLocal
+
+
+def get_db() -> Generator['['/]Session, None, None]:
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+[/file]
+[/template]
+
+[template public fastapiSchemas(model : Model)]
+[for (cls : Class | model.getAllClass()) separator('\n\n')]
+[file (model.getFastAPITargetApp()+'dto/'+cls.name.toLower()+'.py', false, 'UTF-8')]
+[if (model.hasDateAndDateTime())]
+from datetime import date, datetime
+[elseif (model.hasDateType())]
+from datetime import date
+[elseif (model.hasDateTimeType())]
+from datetime import datetime
+[/if]
+
+from pydantic import BaseModel
+
+
+[if (cls.generalization->isEmpty())]
+class [cls.name/]Base(BaseModel):
+[cls.emitSchemaFields()/]
+
+
+class [cls.name/]Create([cls.name/]Base):
+    pass
+
+
+class [cls.name/]Update([cls.name/]Base):
+    pass
+
+
+class [cls.name/]Read([cls.name/]Base):
+    id: int
+[if (cls.hasChildren(model))]
+    [cls.name.toLower()/]_type: str
+[/if]
+
+    model_config = {"from_attributes": True}
+[else]
+from src.dto.[cls.generalization.general.name.toLower()/] import *
+
+class [cls.name/]Create([cls.generalization.general.name/]Base):
+[cls.emitSchemaFields()/]
+
+
+class [cls.name/]Update([cls.name/]Create):
+    pass
+
+
+class [cls.name/]Read([cls.generalization.general.name/]Read):
+[cls.emitSchemaFields()/]
+[/if]
+[/file]
+[/for]
+[/template]
+
+[template private emitSchemaFields(cls : Class)]
+[let scalarFields : Sequence(Property) = cls.ownedAttribute->select(f | f.association.oclIsUndefined() and f.name.toLower() <> 'id')->asSequence()]
+[let fkFields : Sequence(Property) = cls.ownedAttribute->select(p | p.association->notEmpty() and p.shouldOwnForeignKey())->asSequence()]
+[if (scalarFields->isEmpty() and fkFields->isEmpty())]
+    pass
+[else]
+[for (field : Property | scalarFields)]
+    [field.name.toSnakeCase()/]: [field.getSchemaFieldType()/][field.getSchemaFieldDefault()/]
+[/for]
+[for (field : Property | fkFields)]
+    [field.getForeignKeyName()/]: [field.getForeignKeyPythonType()/][if (field.getForeignKeyPythonType() = 'int | None')] = None[/if]
+[/for]
+[/if]
+[/let]
+[/let]
+[/template]
+
+[query private getSchemaFieldType(p : Property) : String =
+	if (p.type.oclIsUndefined() or p.type.oclIsInvalid()) then
+		'str'
+	else if (p.isSchemaOptional()) then
+		p.type.mapDataType() + ' | None'
+	else
+		p.type.mapDataType()
+	endif endif
+/]
+
+[query private getSchemaFieldDefault(p : Property) : String =
+	if (p.isSchemaOptional()) then ' = None' else '' endif
+/]
+
+[query private isSchemaOptional(p : Property) : Boolean =
+	p.lower = 0
+	or
+	(
+		not p.type.oclIsUndefined() and not p.type.oclIsInvalid()
+		and p.name.toLower() = 'date'
+		and p.type.name.toLower() = 'datetime'
+	)
+/]
+
+[query private hasDateType(model : Model) : Boolean =
+	not model.allOwnedElements()->filter(TypedElement)->select(type <> null and type.name <> null and type.name.toLower() = 'date')->isEmpty()
+/]
+
+[query private hasDateTimeType(model : Model) : Boolean =
+	not model.allOwnedElements()->filter(TypedElement)->select(type <> null and type.name <> null and type.name.toLower() = 'datetime')->isEmpty()
+/]
+
+[query private hasDateAndDateTime(model : Model) : Boolean =
+	model.hasDateType() and model.hasDateTimeType()
+/]
+
+[query private hasChildren(cls : Class, model : Model) : Boolean =
+	model.getAllClass()->exists(c | c.generalization->exists(g | g.general = cls))
+/]

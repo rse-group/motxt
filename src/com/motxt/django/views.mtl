@@ -23,6 +23,8 @@ def landing_page(request):
     [model.landingPageViews()/]
 
     return render(request, 'landing_page.html', {'model_info': model_info})
+
+[model.dashboard()/]
 	
 [for (cls : Class | model.getAllClass()) separator ('\n')]
 #-------------- CRUD methods for Class [cls.name/] ---------------
@@ -72,8 +74,10 @@ def edit_[cls.name.toSnakeCase()/](request, id):
 [template public readViews(cls : Class)]
 def get_[cls.name.toSnakeCase()/](request):
     [cls.name.toSnakeCase()/]s = [cls.name/].objects.all()
+    
     all_fields = ['['/]field.name for field in [cls.name/]._meta.get_fields()[']'/]
     [cls.name.toSnakeCase()/]_data = ['[]'/]
+    form = [cls.name/]Form()
     
     for [cls.name.toSnakeCase()/] in [cls.name.toSnakeCase()/]s:
         [cls.name.toSnakeCase()/]_dict = {}
@@ -92,6 +96,8 @@ def get_[cls.name.toSnakeCase()/](request):
     return render(request, '[cls.name.toSnakeCase()/]_list.html', {
         '[cls.name.toSnakeCase()/]_data': [cls.name.toSnakeCase()/]_data,
         'fields': all_fields,
+        'form': form,
+        
     })
 [/template]
 
@@ -118,4 +124,23 @@ def [method.name/](request, instance_name[for (param : Parameter | method.getPar
     raise NotImplementedError('[method.name/] function is not yet implemented')
     pass
 [/for]
+[/template]
+
+[template public dashboard(model : Model)]
+def dashboard(request):
+    entity_cards = ['['/]
+        [for (cls : Class | model.getAllClass()) separator(',\n') ]
+        {
+            'label': '[cls.name/]',
+            'count': [cls.name/].objects.count(),
+            'list_url': 'main:get_[cls.name.toSnakeCase()/]',
+            'create_url': 'main:create_[cls.name.toSnakeCase()/]',
+            'fields': ['['/]field.name for field in [cls.name/]._meta.get_fields()],
+        }
+        [/for]
+    ]
+
+    return render(request, 'dashboard.html', {
+        'entity_cards': entity_cards,
+    })
 [/template]

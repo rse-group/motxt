@@ -25,7 +25,7 @@ class [cls.name/]([cls.getParentClass()/]):
 [template public getAttributes(cls : Class)]
 [for (field : Property | cls.ownedAttribute)]
 [if (field.association.oclIsUndefined())]
-[field.name.toSnakeCase()/] = [field.mapDataTypeField()/]
+[field.name.toSnakeCase()/] = [field.mapDataTypeFieldDjango()/]
 [elseif ((not(field.association.memberEnd->at(2) = field) and (field.aggregation.oclIsInvalid())) or ((field.association.memberEnd->first() = field) and not(field.aggregation.oclIsUndefined())))]
 [field.getRelation()/][/if][/for]
 [/template]

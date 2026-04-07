@@ -11,6 +11,9 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     {% block meta %} {% endblock meta %}
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="{% static 'css/style.css' %}" />
 
     <script src="https://cdn.tailwindcss.com"></script>
@@ -20,6 +23,9 @@
         darkMode: 'class',
         theme: {
           extend: {
+            fontFamily: {
+              sans: ['['/]'Plus Jakarta Sans', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+            },
             colors: {
               primary: {
                 50: '#eff6ff',
@@ -45,28 +51,38 @@
     </script>
   </head>
 
-  <body class="bg-slate-300 dark:bg-slate-900 transition-colors duration-200">
-    {% block navbar %}
-    <nav class="bg-slate-100 dark:bg-slate-800 border-b-2 border-primary-500 shadow-sm mb-8 mx-4">
+  <body class="flex min-h-screen flex-col overflow-x-hidden bg-slate-300 font-sans transition-colors duration-200 dark:bg-slate-900">
+
+    <nav class="mb-4 rounded-b-2xl border border-white/30 bg-white/35 shadow-xl shadow-slate-900/10 backdrop-blur-xl dark:border-white/10 dark:bg-slate-900/45">
       <div class="max-w-dvw mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
-          <div class="flex-shrink-0 flex items-center">
-            <span class="text-xl font-bold text-primary-600 dark:text-blue-400">[model.name/]</span>
+          <div class="flex-shrink-0 flex items-center gap-3">
+            <button
+              id="drawerToggle"
+              onclick="toggleDrawer()"
+              class="lg:hidden rounded-xl border border-white/30 bg-white/40 p-2 text-secondary transition-colors hover:bg-white/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 dark:border-white/10 dark:bg-slate-800/50 dark:text-slate-300 dark:hover:bg-slate-700/70"
+              aria-label="Toggle navigation drawer"
+            >
+              <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+            {% block back_to_home %}
+              <a href="{% url 'main:landing_page' %}" class="inline-flex items-center gap-2 rounded-xl border border-white/30 bg-white/40 px-3 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-white/60 dark:border-white/10 dark:bg-slate-800/50 dark:text-slate-200 dark:hover:bg-slate-700/70">
+                <span aria-hidden="true">←</span>
+                <span>Back to Home</span>
+              </a>
+            {% endblock back_to_home %}
           </div>
           <div class="flex items-center gap-4">
-            <div class="text-secondary dark:text-slate-300 hover:text-primary-600 dark:hover:text-blue-400 transition-colors">
-              {% block back_to_home %} {% endblock back_to_home %}
-            </div>
             <button
               onclick="toggleTheme()"
-              class="rounded-md p-2 text-secondary dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+              class="rounded-xl border border-white/30 bg-white/40 p-2 text-secondary transition-colors hover:bg-white/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 dark:border-white/10 dark:bg-slate-800/50 dark:text-slate-300 dark:hover:bg-slate-700/70"
               aria-label="Toggle dark mode"
             >
-              <!-- Sun icon (shown in dark mode) -->
               <svg class="h-5 w-5 hidden dark:block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m8.66-9h-1M4.34 12h-1m15.07-6.07-.71.71M5.64 18.36l-.71.71m12.73 0-.71-.71M5.64 5.64l-.71-.71M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z" />
               </svg>
-              <!-- Moon icon (shown in light mode) -->
               <svg class="h-5 w-5 block dark:hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z" />
               </svg>
@@ -75,11 +91,59 @@
         </div>
       </div>
     </nav>
-    {% endblock navbar %}
 
-    <main>{% block content %} {% endblock content %}</main>
+    <div id="drawerOverlay" class="pointer-events-none fixed inset-0 z-40 bg-black/0 transition-colors duration-300 lg:hidden"></div>
+    <div id="drawerPanel" class="fixed left-0 top-0 z-50 h-screen w-80 -translate-x-full transform overflow-y-auto bg-white/90 shadow-2xl transition-transform duration-300 dark:bg-slate-900/95 lg:hidden">
+      <div class="space-y-4 p-4">
+        <button
+          onclick="toggleDrawer()"
+          class="ml-auto block rounded-xl border border-white/30 bg-white/40 p-2 text-secondary transition-colors hover:bg-white/60 dark:border-white/10 dark:bg-slate-800/50 dark:text-slate-300 dark:hover:bg-slate-700/70"
+          aria-label="Close navigation drawer"
+        >
+          <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+        <div id="drawerContent"></div>
+      </div>
+    </div>
+
+    <main class="flex-1">{% block content %} {% endblock content %}</main>
+
+    <footer class="mx-4 mt-10 pb-6 text-center md:mx-8 lg:mx-12">
+      <div class="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/50 px-4 py-2 text-sm font-medium text-slate-700 shadow-lg shadow-indigo-500/10 backdrop-blur-md dark:border-slate-700/70 dark:bg-slate-800/60 dark:text-slate-200">
+        <span class="h-2 w-2 rounded-full bg-gradient-to-r from-indigo-500 to-fuchsia-500"></span>
+        powered by <span class="bg-gradient-to-r from-indigo-600 to-fuchsia-600 bg-clip-text font-bold text-transparent">motxt</span>
+      </div>
+    </footer>
+
+    <template id="entitySidebarTemplate">
+      <aside class="rounded-3xl border border-white/20 bg-white/60 p-4 shadow-xl backdrop-blur-xl dark:border-white/10 dark:bg-slate-900/50 lg:p-5">
+        <a href="{% url 'main:landing_page' %}" class="mb-0 block text-lg font-black tracking-tight text-slate-900 dark:text-white lg:mb-6 lg:text-xl">[model.name/]</a>
+        <p class="mb-3 mt-3 hidden text-xs font-semibold uppercase tracking-['['/]0.18em] text-slate-500 dark:text-slate-400 lg:block">Entities</p>
+        <nav class="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 text-sm lg:mx-0 lg:block lg:space-y-2 lg:overflow-visible lg:px-0 lg:pb-0">
+          [for (cls : Class | model.getAllClass())]
+          <a data-entity-link href="{% url 'main:get_[cls.name.toSnakeCase()/]' %}" class="inline-flex whitespace-nowrap rounded-xl px-3 py-2 font-medium text-slate-700 transition hover:bg-white/70 dark:text-slate-200 dark:hover:bg-slate-800/60 lg:flex">[cls.name/]</a>
+          [/for]
+        </nav>
+      </aside>
+    </template>
+
+    <template id="entityDrawerTemplate">
+      <div class="space-y-4">
+        <a href="{% url 'main:landing_page' %}" class="block text-lg font-black tracking-tight text-slate-900 dark:text-white">[model.name/]</a>
+        <p class="text-xs font-semibold uppercase tracking-['['/]0.18em] text-slate-500 dark:text-slate-400">Entities</p>
+        <nav class="space-y-2">
+          [for (cls : Class | model.getAllClass())]
+          <a data-entity-link href="{% url 'main:get_[cls.name.toSnakeCase()/]' %}" class="block rounded-xl px-3 py-2 font-medium text-slate-700 transition hover:bg-white/70 dark:text-slate-200 dark:hover:bg-slate-800/60">[cls.name/]</a>
+          [/for]
+        </nav>
+      </div>
+    </template>
 
     <script>
+      let drawerOpen = false;
+
       function toggleTheme() {
         const html = document.documentElement;
         if (html.classList.contains('dark')) {
@@ -90,99 +154,212 @@
           localStorage.setItem('theme', 'dark');
         }
       }
+
+      function toggleDrawer() {
+        const drawerPanel = document.getElementById('drawerPanel');
+        const drawerOverlay = document.getElementById('drawerOverlay');
+
+        drawerOpen = !drawerOpen;
+
+        if (drawerOpen) {
+          drawerPanel.classList.remove('-translate-x-full');
+          drawerOverlay.classList.remove('pointer-events-none');
+          drawerOverlay.classList.add('bg-black/50', 'pointer-events-auto');
+        } else {
+          drawerPanel.classList.add('-translate-x-full');
+          drawerOverlay.classList.add('pointer-events-none');
+          drawerOverlay.classList.remove('bg-black/50', 'pointer-events-auto');
+        }
+      }
+
+      function closeDrawer() {
+        if (drawerOpen) {
+          toggleDrawer();
+        }
+      }
+
+      function applyEntityLinkStyles() {
+        const normalizePath = (path) => {
+          const normalized = path.replace(/\/+$/, '');
+          return normalized || '/';
+        };
+
+        const currentPath = normalizePath(window.location.pathname);
+        const links = document.querySelectorAll('['['/]data-entity-link]');
+
+        const inactiveClasses = ['['/]'font-medium', 'text-slate-700', 'transition', 'hover:bg-white/70', 'dark:text-slate-200', 'dark:hover:bg-slate-800/60'];
+        const activeClasses = ['['/]'bg-gradient-to-r', 'from-indigo-600', 'to-violet-600', 'font-semibold', 'text-white', 'shadow-lg', 'shadow-indigo-500/25'];
+
+        links.forEach((link) => {
+          const linkPath = normalizePath(new URL(link.href, window.location.origin).pathname);
+          if (linkPath === currentPath) {
+            link.classList.remove(...inactiveClasses);
+            link.classList.add(...activeClasses);
+          }
+        });
+      }
+
+      function mountEntitySidebar() {
+        const isSmallScreen = window.innerWidth < 1024;
+
+        if (isSmallScreen) {
+          const drawerContent = document.querySelector('#drawerContent');
+          const drawerTemplate = document.getElementById('entityDrawerTemplate');
+          if (drawerContent && drawerTemplate) {
+            drawerContent.innerHTML = drawerTemplate.innerHTML;
+          }
+        } else {
+          const mount = document.querySelector('['['/]data-entity-sidebar]');
+          const sidebarTemplate = document.getElementById('entitySidebarTemplate');
+          if (mount && sidebarTemplate) {
+            mount.innerHTML = sidebarTemplate.innerHTML;
+          }
+        }
+
+        document.querySelectorAll('['['/]data-entity-link]').forEach((link) => {
+          link.addEventListener('click', closeDrawer);
+        });
+
+        applyEntityLinkStyles();
+      }
+
+      document.addEventListener('DOMContentLoaded', () => {
+        mountEntitySidebar();
+
+        const drawerOverlay = document.getElementById('drawerOverlay');
+        drawerOverlay.addEventListener('click', closeDrawer);
+
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+          clearTimeout(resizeTimeout);
+          resizeTimeout = setTimeout(() => {
+            const isSmallScreen = window.innerWidth < 1024;
+            const mount = document.querySelector('['['/]data-entity-sidebar]');
+            const drawerContent = document.querySelector('#drawerContent');
+
+            if (isSmallScreen && drawerContent && drawerContent.innerHTML === '') {
+              closeDrawer();
+              mountEntitySidebar();
+            } else if (!isSmallScreen && mount && mount.innerHTML === '') {
+              closeDrawer();
+              mountEntitySidebar();
+            }
+          }, 250);
+        });
+      });
+
+      document.addEventListener('DOMContentLoaded', () => {
+        applyEntityLinkStyles();
+      });
     </script>
   </body>
 </html>
 [/file]
 [for (cls : Class | model.getAllClass())]
-[file (model.getTargetMain()+'templates/create_' + cls.name.toLowerCase() + '.html', false, 'UTF-8')]
+[file (model.getDjangoTargetMain()+'templates/create_' + cls.name.toLowerCase() + '.html', false, 'UTF-8')]
 [cls.createHTML() /]
 [/file]
 [if (cls.ownedAttribute->select(association.oclIsUndefined())->notEmpty())]
-[file (model.getTargetMain()+'templates/edit_' + cls.name.toLowerCase() + '.html', false, 'UTF-8')]
+[file (model.getDjangoTargetMain()+'templates/edit_' + cls.name.toLowerCase() + '.html', false, 'UTF-8')]
 [cls.editHTML() /]
 [/file]
 [/if]
-[file (model.getTargetMain()+'templates/'+cls.name.toLowerCase() + '_list.html', false, 'UTF-8')]
+[file (model.getDjangoTargetMain()+'templates/'+cls.name.toLowerCase() + '_list.html', false, 'UTF-8')]
 [cls.getHTML() /]
 [/file]
 [/for]
 [model.staticFiles()/]
 [model.landingPage()/]
+[model.dashboard()/]
 [/template]
 
-[template public landingPage(model : Model)]
-[file (model.getTargetMain()+'templates/landing_page.html',false,'UTF-8')]
+[template private landingPage(model : Model)]
+[file (model.getDjangoTargetMain()+'templates/landing_page.html',false,'UTF-8')]
 {% extends 'base.html' %}
+{% block back_to_home %}{% endblock back_to_home %}
+{% block meta %}
+<title>Landing Page</title>
+{% endblock meta %}
 {% block content %}
-    <section class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
-        <header class="mb-6">
-            <h1 class="text-3xl font-bold tracking-tight text-primary-700 dark:text-blue-300">Landing Page</h1>
-            <p class="mt-2 text-secondary dark:text-slate-400">Browse available models and open their detail views.</p>
-        </header>
+  <section class="relative mx-4 overflow-hidden rounded-3xl border border-white/20 bg-white/30 px-6 py-10 shadow-2xl backdrop-blur-xl dark:border-white/10 dark:bg-slate-900/40 md:mx-8 md:px-10 lg:mx-12 lg:py-14">
+    <div class="pointer-events-none absolute -left-24 -top-20 h-72 w-72 rounded-full bg-fuchsia-500/30 blur-3xl"></div>
+    <div class="pointer-events-none absolute -right-20 top-10 h-64 w-64 rounded-full bg-cyan-400/30 blur-3xl"></div>
+    <div class="pointer-events-none absolute bottom-0 left-1/3 h-56 w-56 rounded-full bg-violet-500/30 blur-3xl"></div>
 
-        <article class="overflow-hidden rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 shadow-sm">
-            <div class="border-b border-slate-200 dark:border-slate-700 px-4 py-3 sm:px-6">
-                <h2 class="text-lg font-semibold text-primary-600 dark:text-blue-400">Models Available</h2>
-            </div>
+    <div class="relative grid gap-10 lg:grid-cols-2 lg:items-center">
+      <div>
+        <p class="mb-4 inline-flex rounded-full border border-white/30 bg-white/30 px-4 py-1 text-xs font-semibold uppercase tracking-['['/]0.2em] text-slate-700 dark:bg-slate-800/50 dark:text-slate-200">Universal CRUD Platform</p>
+        <h1 class="text-4xl font-black tracking-tight text-slate-900 dark:text-white md:text-5xl">[model.name/]</h1>
 
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-slate-200 dark:divide-slate-700" aria-label="Available models table">
-                    <caption class="sr-only">List of available models and links to view each model.</caption>
-                    <thead class="bg-primary-100 dark:bg-blue-900/40">
-                        <tr>
-                            <th scope="col" class="px-4 py-3 text-left text-sm font-semibold text-secondary dark:text-slate-300 sm:px-6">Model Name</th>
-                            <th scope="col" class="px-4 py-3 text-left text-sm font-semibold text-secondary dark:text-slate-300 sm:px-6">View</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-200 dark:divide-slate-700 bg-slate-100 dark:bg-slate-800">
-                        {% for model_name, model_label in model_info.items %}
-                            <tr class="hover:bg-slate-200/70 dark:hover:bg-slate-700/30 transition-colors">
-                                <td class="px-4 py-3 text-sm text-secondary dark:text-slate-300 sm:px-6">{{ model_label }}</td>
-                                {% with url_name="main:get_"|add:model_name %}
-                                    <td class="px-4 py-3 text-sm sm:px-6">
-                                        <a
-                                            href="{% url url_name %}"
-                                            class="inline-flex items-center rounded-md px-3 py-1.5 font-medium text-primary-600 dark:text-blue-400 hover:bg-primary-50 dark:hover:bg-slate-700 hover:text-primary-700 dark:hover:text-blue-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
-                                        >
-                                            View {{ model_label }}
-                                        </a>
-                                    </td>
-                                {% endwith %}
-                            </tr>
-                        {% empty %}
-                            <tr>
-                                <td colspan="2" class="px-4 py-6 text-center text-sm text-secondary dark:text-slate-400 sm:px-6">No models available.</td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+        <div class="mt-8 flex flex-wrap gap-3">
+          <a href="{% url 'main:dashboard' %}" class="inline-flex items-center rounded-xl bg-gradient-to-r from-indigo-600 via-violet-600 to-fuchsia-600 px-6 py-3 font-semibold text-white shadow-lg shadow-indigo-600/30 transition-transform duration-300 hover:-translate-y-0.5">Launch Dashboard</a>
+          <a href="#entities" class="inline-flex items-center rounded-xl border border-slate-300/70 bg-white/50 px-6 py-3 font-semibold text-slate-800 backdrop-blur-md transition-colors hover:bg-white/80 dark:border-slate-600 dark:bg-slate-800/50 dark:text-slate-100 dark:hover:bg-slate-800">Explore Entities</a>
+        </div>
+      </div>
+
+      <div class="relative min-h-80 rounded-3xl border border-white/30 bg-gradient-to-br from-slate-900/80 via-indigo-900/70 to-violet-900/70 p-6 shadow-2xl backdrop-blur-xl dark:border-white/10">
+        <div class="absolute -right-6 -top-8 h-20 w-20 rotate-12 rounded-3xl bg-cyan-300/40 blur-sm"></div>
+        <div class="absolute -bottom-8 -left-5 h-24 w-24 -rotate-12 rounded-full bg-fuchsia-300/30 blur-sm"></div>
+        <div class="relative grid gap-4 md:grid-cols-2">
+          <div class="rounded-2xl border border-white/20 bg-white/10 p-4">
+            <p class="text-xs uppercase tracking-['['/]0.18em] text-indigo-100">Live Workspace</p>
+            <h3 class="mt-2 text-xl font-bold text-white">Operations Overview</h3>
+            <div class="mt-4 text-sm">
+              <div class="rounded-xl bg-white/10 p-3 text-indigo-50">Total Entities<br><span class="text-lg font-bold">{{ model_info|length }}</span></div>
             </div>
-        </article>
+          </div>
+          <div class="rounded-2xl border border-white/20 bg-white/10 p-4">
+            <p class="text-xs uppercase tracking-['['/]0.18em] text-indigo-100">Relational Entities</p>
+            <div class="mt-2 flex max-h-52 flex-col gap-3 overflow-y-auto pr-1 text-sm font-semibold text-white/95">
+              {% for _, model_label in model_info.items %}
+                <span class="inline-flex w-fit rounded-full bg-white/20 px-4 py-2">{{ model_label }}</span>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
     </section>
+
+  <section id="entities" class="mx-4 mt-10 grid gap-4 md:mx-8 md:grid-cols-2 lg:mx-12 lg:grid-cols-3">
+    {% for model_name, model_label in model_info.items %}
+      {% with url_name="main:get_"|add:model_name %}
+        <a href="{% url url_name %}" class="group rounded-2xl border border-slate-200/70 bg-white/60 p-5 shadow-lg backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:border-indigo-400/60 dark:border-slate-700 dark:bg-slate-800/50">
+          <p class="text-xs uppercase tracking-['['/]0.16em] text-slate-500 dark:text-slate-400">Entity</p>
+          <h2 class="mt-2 text-xl font-bold text-slate-900 dark:text-white">{{ model_label }}</h2>
+          <p class="mt-3 text-sm text-slate-600 dark:text-slate-300">Open and manage records with a flexible, modern CRUD workflow.</p>
+          <span class="mt-4 inline-flex text-sm font-semibold text-indigo-600 transition-transform group-hover:translate-x-1 dark:text-indigo-300">Open view →</span>
+        </a>
+      {% endwith %}
+    {% endfor %}
+  </section>
 {% endblock content %}
 [/file]
 [/template]
 
-[template public createHTML(cls : Class)]
+[template private createHTML(cls : Class)]
 {% extends 'base.html' %}
+{% load static %}
+{% block meta %}
+<title>Create [cls.name/]</title>
+{% endblock meta %}
 {% block content %}
 <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-    <div class="bg-white shadow-md border border-gray-200 rounded-xl p-8">
-        <h1 class="text-2xl font-bold text-gray-900 mb-6 text-center">Create [cls.name/]</h1>
+    <div class="bg-slate-100 dark:bg-slate-800 shadow-md border border-gray-200 rounded-xl p-8">
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-6 text-center">Create [cls.name/]</h1>
         
         <form method="POST" class="space-y-6">
             {% csrf_token %}
             
-            <div class="django-form-wrapper space-y-4 text-gray-700">
+            <div class="django-form-wrapper space-y-4 text-gray-700 dark:text-gray-300">
                 {{ form.as_p }}
             </div>
             
-            <div class="flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t border-gray-100">
-                <button type="button" onclick="history.back()" class="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+            <div class="flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t border-gray-100 dark:border-gray-700">
+                <button type="button" onclick="history.back()" class="inline-flex justify-center py-2 px-4 border border-gray-300 dark:border-gray-600 shadow-sm text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-900 focus:ring-blue-500">
                     Cancel
                 </button>
-                <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                     Create [cls.name/]
                 </button>
             </div>
@@ -192,95 +369,270 @@
 {% endblock content %}
 [/template]
 
-[template public getHTML(cls : Class)]
+[template private getHTML(cls : Class)]
 [let has_edit : Boolean = cls.ownedAttribute->select(association.oclIsUndefined())->notEmpty()]
 {% extends 'base.html' %}
 {% load filter_tag %}
+{% block meta %}
+<title>[cls.name/] List</title>
+{% endblock meta %}
 {% block content %}
-    <section class="mx-4 md:mx-8 lg:mx-12">
-        <header class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-                <h1 class="text-3xl font-bold tracking-tight text-primary-700 dark:text-blue-300">[cls.name/] List</h1>
-                <p class="mt-2 text-secondary dark:text-slate-400">Manage existing [cls.name/] records.</p>
+  <section class="relative mx-4 overflow-hidden md:mx-8 lg:mx-12">
+    <div class="pointer-events-none absolute -left-20 top-2 hidden h-64 w-64 rounded-full bg-cyan-400/20 blur-3xl md:block"></div>
+    <div class="pointer-events-none absolute -right-10 top-20 hidden h-80 w-80 rounded-full bg-fuchsia-500/20 blur-3xl md:block"></div>
+
+    <div class="relative grid gap-6 lg:grid-cols-['['/]260px_1fr]">
+      <div class="hidden lg:block" data-entity-sidebar></div>
+
+      <div class="space-y-6">
+        <header class="rounded-3xl border border-white/20 bg-white/60 px-4 py-6 shadow-xl backdrop-blur-xl dark:border-white/10 dark:bg-slate-900/50 sm:px-6">
+          <div class="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+            <div class="min-w-0 flex-1">
+              <p class="text-xs font-semibold uppercase tracking-['['/]0.18em] text-slate-500 dark:text-slate-400">Dashboard</p>
+              <h1 class="mt-1 text-xl font-black tracking-tight text-slate-900 dark:text-white sm:text-2xl lg:text-3xl">[cls.name/] List</h1>
+              <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">Manage existing [cls.name.toLower()/] records.</p>
             </div>
-            <div class="flex flex-wrap gap-2">
-                <a href="{% url 'main:landing_page' %}" class="inline-flex items-center rounded-md border border-slate-300 dark:border-slate-600 bg-slate-100 dark:bg-slate-800 px-4 py-2 text-sm font-medium text-secondary dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2">
-                    Back to Home
-                </a>
-                <a href="{% url 'main:create_[cls.name.toSnakeCase()/]' %}" class="inline-flex items-center rounded-md bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2">
-                    Create New [cls.name/]
-                </a>
-            </div>
+            <button type="button" onclick="open[cls.name/]Modal()" class="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 via-violet-600 to-fuchsia-600 px-4 py-2 text-xs font-semibold leading-none whitespace-nowrap text-white shadow-lg shadow-violet-600/30 transition-transform duration-300 hover:-translate-y-0.5 sm:px-5 sm:py-2.5 sm:text-sm">
+              <svg
+              aria-hidden="true"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              stroke="currentColor"
+              stroke-width="1"
+              class="h-5 w-5"
+            >
+              <path
+                d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z"
+              />
+              <span>Create New</span>
+            </button>
+          </div>
         </header>
-        <article class="overflow-hidden rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 shadow-sm">
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-slate-200 dark:divide-slate-700" aria-label="[cls.name/] list table">
-                    <thead class="bg-primary-100 dark:bg-blue-900/40">
-                        <tr>
-                            {% for field in fields %}
-                                <th scope="col" class="px-4 py-3 text-left text-sm font-semibold text-secondary dark:text-slate-300 sm:px-6">{{ field }}</th>
-                            {% endfor %}
-                            <th scope="col" class="px-4 py-3 text-left text-sm font-semibold text-secondary dark:text-slate-300 sm:px-6">Action</th>
-                        </tr>
-                    </thead>
-        <tbody class="divide-y divide-slate-200 dark:divide-slate-700 bg-slate-100 dark:bg-slate-800">
-            {% for [cls.name.toSnakeCase()/], [cls.name.toSnakeCase()/]_dict in [cls.name.toSnakeCase()/]_data %}
-            <tr class="hover:bg-slate-200/70 dark:hover:bg-slate-700/30 transition-colors">        
-            {% for field in fields %}
-                <td class="px-4 py-3 text-sm text-secondary dark:text-slate-300 sm:px-6">{{ [cls.name.toSnakeCase()/]_dict|get_item:field }}</td>
-            {% endfor -%}
-                <td class="px-4 py-3 text-sm sm:px-6">
+
+        <article class="overflow-hidden rounded-3xl border border-white/20 bg-white/60 shadow-xl backdrop-blur-xl dark:border-white/10 dark:bg-slate-900/50">
+          <div class="overflow-x-auto overflow-y-auto min-h-['['/]14rem] max-h-['['/]70vh] sm:min-h-['['/]20rem] lg:min-h-['['/]26rem]">
+            <table id="[cls.name.toSnakeCase()/]Table" class="min-w-max w-full divide-y divide-slate-200/70 dark:divide-slate-700/80" aria-label="[cls.name/] list table">
+              <thead class="bg-slate-100/80 dark:bg-slate-800/70">
+                <tr>
+                  {% for field in fields %}
+                    <th scope="col" data-sortable="true" class="cursor-pointer select-none whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-['['/]0.11em] text-slate-600 dark:text-slate-300 sm:px-6">{{ field }}</th>
+                  {% endfor %}
+                  <th scope="col" class="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-['['/]0.11em] text-slate-600 dark:text-slate-300 sm:px-6">Actions</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-200/70 bg-white/30 dark:divide-slate-700/80 dark:bg-slate-900/10">
+                {% for [cls.name.toSnakeCase()/], [cls.name.toSnakeCase()/]_dict in [cls.name.toSnakeCase()/]_data %}
+                <tr class="transition-colors hover:bg-indigo-50/70 dark:hover:bg-slate-800/70">
+                  {% for field in fields %}
+                    <td class="whitespace-nowrap px-4 py-3 text-sm text-slate-700 dark:text-slate-200 sm:px-6">{{ [cls.name.toSnakeCase()/]_dict|get_item:field }}</td>
+                  {% endfor %}
+                  <td class="whitespace-nowrap px-4 py-3 text-sm sm:px-6">
                     <div class="flex gap-2">
-            [if (has_edit)]
-                        <a href="{% url 'main:edit_[cls.name.toSnakeCase()/]' [cls.name.toSnakeCase()/].pk %}" class="inline-flex items-center rounded-md border border-slate-300 dark:border-slate-600 px-3 py-1.5 font-medium text-primary-600 dark:text-blue-400 hover:bg-primary-50 dark:hover:bg-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2">
-                            <button>Edit</button>
-                        </a>
-            [/if]
-                        <form action="{% url 'main:delete_[cls.name.toSnakeCase()/]' %}" method="POST">
-                            {% csrf_token %}
-                            <input type="hidden" name="object_id" value="{{ [cls.name.toSnakeCase()/].id }}">
-                            <button type="submit" class="inline-flex items-center rounded-md border border-red-300 dark:border-red-700 px-3 py-1.5 font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2">Delete</button>
-                        </form>
+                      [if (has_edit)]
+                      <button type="button" class="inline-flex items-center rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-1.5 font-semibold text-indigo-700 transition hover:bg-indigo-100 dark:border-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-200 dark:hover:bg-indigo-900/60"
+                        data-edit-id="{{ [cls.name.toSnakeCase()/].id }}"
+                        [for (att : Property | cls.ownedAttribute) separator('\n')]
+                        [if (att.name <> 'id')]
+                        data-edit-[att.name.toSnakeCase()/]="[if (att.association.oclIsUndefined())]{{ [cls.name.toSnakeCase()/].[att.name/] }}[else]{% if [cls.name.toSnakeCase()/].[att.name/] %}{{ [cls.name.toSnakeCase()/].[att.name/].id }}{% endif %}[/if]"
+                        [/if]
+                        [/for]
+                        onclick="open[cls.name/]Modal(this)">Edit</button>
+                      [/if]
+                      <form action="{% url 'main:delete_[cls.name.toSnakeCase()/]' %}" method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="object_id" value="{{ [cls.name.toSnakeCase()/].id }}">
+                        <button type="submit" class="inline-flex items-center rounded-lg border border-rose-300 bg-rose-50 px-3 py-1.5 font-semibold text-rose-700 transition hover:bg-rose-100 dark:border-rose-800 dark:bg-rose-900/30 dark:text-rose-300 dark:hover:bg-rose-900/50">Delete</button>
+                      </form>
                     </div>
-                </td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="{{ fields|length|add:2 }}" class="px-4 py-6 text-center text-sm text-secondary dark:text-slate-400 sm:px-6">No [cls.name.toSnakeCase()/]s to display.</td>
-            </tr>
-            {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+                  </td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="{{ fields|length|add:1 }}" class="px-4 py-8 text-center text-sm text-slate-600 dark:text-slate-300 sm:px-6">No [cls.name.toSnakeCase()/]s yet. Use the create button to add your first record.</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
         </article>
-    </section>
+      </div>
+    </div>
+
+    <button type="button" onclick="open[cls.name/]Modal()" class="fixed bottom-8 right-8 z-30 grid h-14 w-14 place-items-center rounded-full bg-gradient-to-r from-indigo-600 to-fuchsia-600 text-3xl font-bold text-white shadow-2xl shadow-indigo-500/30 transition-transform duration-300 hover:scale-105">
+      <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6">
+        <path d="M12 5v14M5 12h14" />
+      </svg>
+    </button>
+  </section>
+
+  <section id="[cls.name.toSnakeCase()/]Modal" class="fixed inset-0 z-40 hidden items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm">
+    <div class="w-full max-w-2xl rounded-3xl border border-white/20 bg-white/80 p-6 shadow-2xl backdrop-blur-xl dark:border-white/10 dark:bg-slate-900/80">
+      <div class="mb-5 flex items-start justify-between gap-4">
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-['['/]0.15em] text-slate-500 dark:text-slate-400">Record Form</p>
+          <h2 id="[cls.name.toSnakeCase()/]ModalTitle" class="text-2xl font-black text-slate-900 dark:text-white">Create New [cls.name/]</h2>
+        </div>
+        <button type="button" onclick="close[cls.name/]Modal()" class="rounded-lg border border-rose-300 bg-rose-50 px-3 py-1 text-sm font-semibold text-rose-700 hover:bg-rose-100 dark:border-rose-800 dark:bg-rose-900/30 dark:text-rose-300 dark:hover:bg-rose-900/50">&#10006;</button>
+      </div>
+
+      <form id="[cls.name.toSnakeCase()/]Form" method="POST" action="{% url 'main:create_[cls.name.toSnakeCase()/]' %}" class="space-y-4">
+        {% csrf_token %}
+        {{ form.as_div }}
+        <div class="pt-2">
+          <button type="submit" class="w-full rounded-xl bg-gradient-to-r from-indigo-600 via-violet-600 to-fuchsia-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-600/30 transition-transform duration-300 hover:-translate-y-0.5">Save Record</button>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <script>
+    const edit[cls.name/]UrlTemplate = "{% url 'main:edit_[cls.name.toSnakeCase()/]' 0 %}";
+
+    function open[cls.name/]Modal(button) {
+      const modal = document.getElementById('[cls.name.toSnakeCase()/]Modal');
+      const form = document.getElementById('[cls.name.toSnakeCase()/]Form');
+      const title = document.getElementById('[cls.name.toSnakeCase()/]ModalTitle');
+
+      form.reset();
+      form.action = "{% url 'main:create_[cls.name.toSnakeCase()/]' %}";
+      title.textContent = 'Create New [cls.name/]';
+
+      if (button && button.dataset && button.dataset.editId) {
+        const editId = button.dataset.editId;
+        form.action = edit[cls.name/]UrlTemplate.replace('/0/', `/${editId}/`);
+        title.textContent = 'Edit [cls.name/]';
+
+        [for (att : Property | cls.ownedAttribute) separator('\n')]
+        [if (att.name <> 'id')]
+        const [att.name.toSnakeCase()/]Input = form.querySelector('['['/]name="[att.name/]"]');
+        if ([att.name.toSnakeCase()/]Input) {
+          [att.name.toSnakeCase()/]Input.value = button.getAttribute('data-edit-[att.name.toSnakeCase()/]') || '';
+        }
+        [/if]
+        [/for]
+      }
+
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function close[cls.name/]Modal() {
+      const modal = document.getElementById('[cls.name.toSnakeCase()/]Modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    document.getElementById('[cls.name.toSnakeCase()/]Modal').addEventListener('click', function(event) {
+      if (event.target.id === '[cls.name.toSnakeCase()/]Modal') {
+        close[cls.name/]Modal();
+      }
+    });
+
+    (function enable[cls.name/]TableSorting() {
+      const table = document.getElementById('[cls.name.toSnakeCase()/]Table');
+      if (!table) return;
+
+      const tbody = table.querySelector('tbody');
+      const headers = Array.from(table.querySelectorAll('thead th['['/]data-sortable="true"]'));
+      const sortState = { index: -1, direction: 'asc' };
+
+      const parseValue = (value) => {
+        const cleaned = value.trim();
+        if (!cleaned) return { type: 'text', value: '' };
+
+        const numeric = Number(cleaned.replace(/,/g, ''));
+        if (!Number.isNaN(numeric) && cleaned.match(/^['['/]-+]?\d['['/]\d,.]*$/)) {
+          return { type: 'number', value: numeric };
+        }
+
+        const asDate = Date.parse(cleaned);
+        if (!Number.isNaN(asDate)) {
+          return { type: 'date', value: asDate };
+        }
+
+        return { type: 'text', value: cleaned.toLowerCase() };
+      };
+
+      const compareValues = (left, right) => {
+        if (left.type === right.type) {
+          if (left.value < right.value) return -1;
+          if (left.value > right.value) return 1;
+          return 0;
+        }
+
+        const order = { number: 0, date: 1, text: 2 };
+        return order['['/]left.type] - order['['/]right.type];
+      };
+
+      const updateHeaderIndicators = () => {
+        headers.forEach((header, idx) => {
+          const label = header.textContent.replace(/['['/]↑↓]\s*$/, '').trim();
+          if (idx !== sortState.index) {
+            header.textContent = label;
+            return;
+          }
+          header.textContent = `${label} ${sortState.direction === 'asc' ? '↑' : '↓'}`;
+        });
+      };
+
+      headers.forEach((header, columnIndex) => {
+        header.addEventListener('click', () => {
+          const rows = Array.from(tbody.querySelectorAll('tr'));
+          if (rows.length <= 1) return;
+
+          const emptyRow = rows['['/]0].querySelector('td['['/]colspan]');
+          if (emptyRow) return;
+
+          sortState.direction = sortState.index === columnIndex && sortState.direction === 'asc' ? 'desc' : 'asc';
+          sortState.index = columnIndex;
+
+          const sorted = rows
+            .map((row, idx) => {
+              const cell = row.children['['/]columnIndex];
+              const value = parseValue(cell ? cell.textContent : '');
+              return { row, idx, value };
+            })
+            .sort((a, b) => {
+              const compared = compareValues(a.value, b.value);
+              if (compared === 0) return a.idx - b.idx;
+              return sortState.direction === 'asc' ? compared : -compared;
+            });
+
+          sorted.forEach(({ row }) => tbody.appendChild(row));
+          updateHeaderIndicators();
+        });
+      });
+    })();
+  </script>
 {% endblock content %}
 [/let]
 [/template]
 
-[template public editHTML(cls : Class)]
+[template private editHTML(cls : Class)]
 {% extends 'base.html' %}
+{% load static %}
 {% block meta %}
 <title>Edit [cls.name/]</title>
 {% endblock meta %}
 {% block content %}
     <section class="mx-4 py-8 sm:py-12">
         <div class="mx-auto max-w-2xl">
-            <article class="overflow-hidden rounded-lg border border-primary-100 bg-white shadow-sm">
+            <article class="overflow-hidden rounded-lg border border-primary-100 bg-slate-100 dark:bg-slate-800 shadow-sm">
                 <header class="border-b border-primary-100 px-6 py-4">
                     <h1 class="text-2xl font-bold text-primary-700">Edit [cls.name/]</h1>
-                    <p class="mt-1 text-sm text-secondary">Update the [cls.name.toLower()/] details below.</p>
+                    <p class="mt-1 text-sm text-secondary dark:text-white">Update the [cls.name.toLower()/] details below.</p>
                 </header>
 
                 <form method="POST" class="space-y-6 px-6 py-6">
                     {% csrf_token %}
 
-                    <div class="django-form-wrapper space-y-4 text-secondary">
+                    <div class="django-form-wrapper space-y-4 text-secondary dark:text-white">
                         {{ form.as_p }}
                     </div>
 
                     <div class="flex flex-col-reverse gap-3 border-t border-primary-100 pt-4 sm:flex-row sm:justify-end">
-                        <button type="button" onclick="history.back()" class="inline-flex justify-center rounded-md border border-primary-200 bg-white px-4 py-2 text-sm font-medium text-secondary hover:bg-primary-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2">
+                        <button type="button" onclick="history.back()" class="inline-flex justify-center rounded-md border border-primary-200 bg-white dark:bg-gray-800 px-4 py-2 text-sm font-medium text-secondary dark:text-white hover:bg-primary-50 dark:hover:bg-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2">
                             Cancel
                         </button>
                         <button type="submit" class="inline-flex justify-center rounded-md bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2">
@@ -294,13 +646,168 @@
 {% endblock content %}
 [/template]
 
-[template public staticFiles(model : Model)]
-[file (model.getTargetStatic()+'css/style.css',false,'UTF-8')]
+[template private dashboard(model : Model)]
+[file (model.getDjangoTargetMain()+'templates/dashboard.html',false,'UTF-8')]
+{% extends 'base.html' %}
+{% block content %}
+    <section class="mx-4 rounded-3xl border border-white/20 bg-white/40 px-6 py-8 shadow-2xl backdrop-blur-xl dark:border-white/10 dark:bg-slate-900/45 md:mx-8 md:px-10 lg:mx-12">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+            <div>
+                <p class="text-xs font-semibold uppercase tracking-['['/]0.18em] text-slate-500 dark:text-slate-400">Overview</p>
+                <h1 class="mt-2 text-3xl font-black tracking-tight text-slate-900 dark:text-white md:text-4xl">Dashboard</h1>
+            </div>
+            <a href="{% url 'main:landing_page' %}" class="inline-flex items-center rounded-xl border border-slate-300/70 bg-white/60 px-4 py-2 text-sm font-semibold text-slate-800 backdrop-blur-md transition-colors hover:bg-white/80 dark:border-slate-600 dark:bg-slate-800/50 dark:text-slate-100 dark:hover:bg-slate-800">Back to Landing</a>
+        </div>
+    </section>
+
+    <section class="mx-4 mt-6 mb-2 rounded-3xl border border-white/20 bg-white/40 p-6 shadow-xl backdrop-blur-xl dark:border-white/10 dark:bg-slate-900/45 md:mx-8 lg:mx-12">
+        <div class="flex items-center justify-between gap-3">
+            <h2 class="text-xl font-bold text-slate-900 dark:text-white">Entity Carousel</h2>
+            <div class="flex items-center gap-2">
+                <button id="carouselPrev" type="button" aria-label="Previous slide" class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-300/70 bg-white/70 text-lg font-bold text-slate-800 transition-colors hover:bg-white dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700">←</button>
+                <button id="carouselNext" type="button" aria-label="Next slide" class="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-r from-indigo-600 to-violet-600 text-lg font-bold text-white shadow-md shadow-indigo-500/20 transition-opacity hover:opacity-95">→</button>
+            </div>
+        </div>
+
+        <div class="mt-5" data-entity-carousel>
+            <div class="relative h-['['/]500px] overflow-hidden ['['/]perspective:1200px] sm:h-['['/]560px] lg:h-['['/]620px]" id="carouselStage">
+                {% for entity in entity_cards %}
+                    <article
+                        class="carousel-card absolute left-1/2 top-1/2 flex h-['['/]360px] w-['['/]75vw] max-w-['['/]420px] -translate-x-1/2 -translate-y-1/2 flex-col rounded-2xl border border-slate-200/70 bg-gradient-to-br from-cyan-500 to-indigo-600 p-7 text-white shadow-2xl shadow-indigo-500/20 transition-all duration-500 ease-out dark:border-slate-700 max-['['/]360px]:h-['['/]330px] max-['['/]360px]:w-['['/]80vw] max-['['/]360px]:p-5 sm:h-['['/]420px] sm:w-['['/]420px] lg:h-['['/]480px] lg:w-['['/]460px]"
+                        data-card-index="{{ forloop.counter0 }}"
+                    >
+                        <p class="text-sm uppercase tracking-['['/]0.16em] text-white/80">Total {{ entity.label }}</p>
+                        <p class="mt-3 text-6xl font-black sm:text-7xl">{{ entity.count }}</p>
+                        <h3 class="mt-1 text-2xl font-bold">{{ entity.label }}</h3>
+
+                        <div class="mt-4 rounded-xl border border-white/25 bg-white/10 p-3">
+                            <p class="text-xs font-semibold uppercase tracking-['['/]0.14em] text-white/80">Fields</p>
+                            <div class="mt-2 flex h-24 flex-wrap gap-1 overflow-y-auto pr-1 sm:h-28 lg:h-32">
+                                {% for field_name in entity.fields %}
+                                    <span class="inline-flex h-fit rounded-full border border-white/30 bg-white/15 px-2.5 py-1 text-xs font-medium text-white/95">{{ field_name }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <div class="mt-auto flex flex-wrap gap-2 pt-4">
+                            <a href="{% url entity.list_url %}" class="inline-flex items-center rounded-lg border border-white/35 bg-white/20 px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-white/30">View All</a>
+                            <a href="{% url entity.create_url %}" class="inline-flex items-center rounded-lg bg-white px-3 py-2 text-sm font-semibold text-indigo-700 transition-colors hover:bg-white/90">Create</a>
+                        </div>
+                    </article>
+                {% endfor %}
+            </div>
+
+            <div class="mt-4 flex justify-center gap-2">
+                {% for entity in entity_cards %}
+                    <button type="button" class="carousel-dot h-2.5 w-2.5 rounded-full bg-slate-300 dark:bg-slate-600" data-slide-index="{{ forloop.counter0 }}" aria-label="Go to {{ entity.label }}"></button>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const carousel = document.querySelector('['['/]data-entity-carousel]');
+                const stage = document.getElementById('carouselStage');
+                const prev = document.getElementById('carouselPrev');
+                const next = document.getElementById('carouselNext');
+                const dots = Array.from(document.querySelectorAll('.carousel-dot'));
+                const cards = Array.from(document.querySelectorAll('.carousel-card'));
+                if (!carousel || !stage || !prev || !next || dots.length === 0 || cards.length === 0) return;
+
+                let currentIndex = 0;
+                const totalSlides = dots.length;
+                const autoSlideMs = 4500;
+                let autoSlideTimer = null;
+
+                const renderCarousel = () => {
+                    cards.forEach((card, index) => {
+                        const rawOffset = index - currentIndex;
+                        const wrappedOffset = ((rawOffset + totalSlides + Math.floor(totalSlides / 2)) % totalSlides) - Math.floor(totalSlides / 2);
+                        const absOffset = Math.abs(wrappedOffset);
+                        const isVisible = absOffset <= 2;
+                        const translateX = wrappedOffset * 110;
+                        const scale = Math.max(0.7, 1 - absOffset * 0.12);
+                        const rotateY = wrappedOffset * -14;
+                        const opacity = isVisible ? Math.max(0.2, 1 - absOffset * 0.28) : 0;
+                        const zIndex = 40 - absOffset;
+
+                        card.style.transform = `translate(-50%, -50%) translateX(${translateX}%) scale(${scale}) rotateY(${rotateY}deg)`;
+                        card.style.opacity = opacity;
+                        card.style.zIndex = String(zIndex);
+                        card.style.filter = absOffset === 0 ? 'none' : 'saturate(0.85)';
+                        card.style.pointerEvents = absOffset === 0 ? 'auto' : 'none';
+                    });
+
+                    dots.forEach((dot, index) => {
+                        if (index === currentIndex) {
+                            dot.classList.remove('bg-slate-300', 'dark:bg-slate-600');
+                            dot.classList.add('bg-indigo-600', 'dark:bg-indigo-400');
+                        } else {
+                            dot.classList.remove('bg-indigo-600', 'dark:bg-indigo-400');
+                            dot.classList.add('bg-slate-300', 'dark:bg-slate-600');
+                        }
+                    });
+                };
+
+                const stopAutoSlide = () => {
+                    if (autoSlideTimer) {
+                        clearInterval(autoSlideTimer);
+                        autoSlideTimer = null;
+                    }
+                };
+
+                const startAutoSlide = () => {
+                    stopAutoSlide();
+                    autoSlideTimer = setInterval(() => {
+                        currentIndex = (currentIndex + 1) % totalSlides;
+                        renderCarousel();
+                    }, autoSlideMs);
+                };
+
+                prev.addEventListener('click', () => {
+                    currentIndex = (currentIndex - 1 + totalSlides) % totalSlides;
+                    renderCarousel();
+                    startAutoSlide();
+                });
+
+                next.addEventListener('click', () => {
+                    currentIndex = (currentIndex + 1) % totalSlides;
+                    renderCarousel();
+                    startAutoSlide();
+                });
+
+                dots.forEach((dot) => {
+                    dot.addEventListener('click', () => {
+                        currentIndex = Number(dot.dataset.slideIndex || 0);
+                        renderCarousel();
+                        startAutoSlide();
+                    });
+                });
+
+                carousel.addEventListener('mouseenter', stopAutoSlide);
+                carousel.addEventListener('mouseleave', startAutoSlide);
+
+                document.addEventListener('visibilitychange', () => {
+                    if (document.hidden) {
+                        stopAutoSlide();
+                    } else {
+                        startAutoSlide();
+                    }
+                });
+
+                renderCarousel();
+                startAutoSlide();
+            });
+        </script>
+{% endblock content %}
+
+[/file]
+[/template]
+
+[template private staticFiles(model : Model)]
+[file (model.getDjangoTargetStatic()+'css/style.css',false,'UTF-8')]
 [model.css()/]
-[/file]
-[file (model.getTargetStatic()+'js/',false,'UTF-8')]
-[/file]
-[file (model.getTargetStatic()+'img/',false,'UTF-8')]
 [/file]
 [/template]
 
@@ -352,6 +859,152 @@ html {
 .dark .django-form-wrapper textarea:focus {
   border-color: #60a5fa;
   box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.3);
+}
+
+/* as_div form group styling */
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  display: inline-block;
+  margin-bottom: 0.4rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #475569;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  display: block;
+  width: 100%;
+  border-radius: 0.75rem;
+  border: 1px solid #94a3b8;
+  background-color: rgba(255, 255, 255, 0.75);
+  padding: 0.7rem 0.9rem;
+  font-size: 0.875rem;
+  color: #0f172a;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+
+.form-group .helptext {
+  display: block;
+  margin-top: 0.4rem;
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.form-group ul.errorlist {
+  margin: 0 0 0.45rem;
+  padding: 0;
+  list-style: none;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #be123c;
+}
+
+.dark .form-group label {
+  color: #cbd5e1;
+}
+
+.dark .form-group input,
+.dark .form-group select,
+.dark .form-group textarea {
+  border-color: #475569;
+  background-color: #1e293b;
+  color: #e2e8f0;
+}
+
+.dark .form-group .helptext {
+  color: #94a3b8;
+}
+
+.dark .form-group ul.errorlist {
+  color: #fda4af;
+}
+
+/* as_div form group styling */
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  display: inline-block;
+  margin-bottom: 0.4rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #475569;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  display: block;
+  width: 100%;
+  border-radius: 0.75rem;
+  border: 1px solid #94a3b8;
+  background-color: rgba(255, 255, 255, 0.75);
+  padding: 0.7rem 0.9rem;
+  font-size: 0.875rem;
+  color: #0f172a;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+
+.form-group .helptext {
+  display: block;
+  margin-top: 0.4rem;
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.form-group ul.errorlist {
+  margin: 0 0 0.45rem;
+  padding: 0;
+  list-style: none;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #be123c;
+}
+
+.dark .form-group label {
+  color: #cbd5e1;
+}
+
+.dark .form-group input,
+.dark .form-group select,
+.dark .form-group textarea {
+  border-color: #475569;
+  background-color: #1e293b;
+  color: #e2e8f0;
+}
+
+.dark .form-group .helptext {
+  color: #94a3b8;
+}
+
+.dark .form-group ul.errorlist {
+  color: #fda4af;
 }
 
 [/template]

@@ -22,7 +22,7 @@
 [/template]
 
 [template private templateTags(model : Model)]
-[file (model.getTargetMain()+'/templatetags/filter_tag.py', false, 'UTF-8')]
+[file (model.getDjangoTargetMain()+'/templatetags/filter_tag.py', false, 'UTF-8')]
 from django import template
 
 register = template.Library()
@@ -34,20 +34,20 @@ def get_item(dictionary, key):
 [/template]
 
 [template private initPy(model : Model)]
-[file (model.getTargetMain()+'__init__.py',false,'UTF-8')]
+[file (model.getDjangoTargetMain()+'__init__.py',false,'UTF-8')]
 
 [/file]
-[file (model.getTargetMain()+'migrations/__init__.py',false,'UTF-8')]
+[file (model.getDjangoTargetMain()+'migrations/__init__.py',false,'UTF-8')]
 
 [/file]
-[file (model.getTargetMain()+'templatetags/__init__.py',false,'UTF-8')]
+[file (model.getDjangoTargetMain()+'templatetags/__init__.py',false,'UTF-8')]
 
 [/file]
 [/template]
 
 
 [template private adminPy(model : Model)]
-[file (model.getTargetMain()+'admin.py',false,'UTF-8')]
+[file (model.getDjangoTargetMain()+'admin.py',false,'UTF-8')]
 from django.contrib import admin
 
 # Register your models here.
@@ -56,7 +56,7 @@ from django.contrib import admin
 [/template]
 
 [template private appsPy(model : Model)]
-[file (model.getTargetMain()+'apps.py',false,'UTF-8')]
+[file (model.getDjangoTargetMain()+'apps.py',false,'UTF-8')]
 from django.apps import AppConfig
 
 
@@ -67,7 +67,7 @@ class MainConfig(AppConfig):
 [/template]
 
 [template private testsPy(model : Model)]
-[file (model.getTargetMain()+'tests.py',false,'UTF-8')]
+[file (model.getDjangoTargetMain()+'tests.py',false,'UTF-8')]
 from django.test import TestCase
 
 # Create your tests here.
@@ -403,7 +403,7 @@ python manage.py runserver
 
 [comment]
 [template private (model : Model)]
-[file (model.getTargetMain()+'',false,'UTF-8')]
+[file (model.getDjangoTargetMain()+'',false,'UTF-8')]
 [/file]
 [/template]
 [/comment]

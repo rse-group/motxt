@@ -1,0 +1,49 @@
+[comment encoding = UTF-8 /]
+[module routers('http://www.eclipse.org/uml2/5.0.0/UML')]
+[import com::motxt::main::utils/]
+[import com::motxt::fastapi::models/]
+
+[template public generateRouters(model : Model)]
+[file (model.getFastAPITargetApp()+'routers/__init__.py', false, 'UTF-8')]
+
+[/file]
+[for (cls : Class | model.getAllClass())]
+[file (model.getFastAPITargetApp()+'routers/'+cls.name.toSnakeCase()+'s.py', false, 'UTF-8')]
+from fastapi import APIRouter, Depends, status
+from sqlalchemy.orm import Session
+
+from src.deps import get_db
+from src.dto.[cls.name.toSnakeCase()/] import *
+from src.models.[cls.name.toSnakeCase()/] import [cls.name/]
+from src.services import [cls.name.toSnakeCase()/]_service
+
+
+router = APIRouter(
+    prefix="/[cls.name.toSnakeCase()/]",
+    tags=['['/]"[cls.name/]"]
+)
+
+@router.post("/", response_model=[cls.name/]Read, status_code=status.HTTP_201_CREATED)
+def create_[cls.name.toLower()/]_endpoint(payload: [cls.name/]Create, db: Session = Depends(get_db)):
+    return [cls.name.toSnakeCase()/]_service.create_[cls.name.toLower()/](db, payload)
+
+@router.get("/", response_model=list['['/][cls.name/]Read])
+def list_[cls.name.toLower()/]s_endpoint(db: Session = Depends(get_db)):
+    return [cls.name.toSnakeCase()/]_service.list_[cls.name.toLower()/]s(db)
+
+@router.get("/{[cls.name.toLower()/]_id}", response_model=[cls.name/]Read)
+def get_[cls.name.toLower()/]_endpoint([cls.name.toLower()/]_id: int, db: Session = Depends(get_db)):
+    return [cls.name.toSnakeCase()/]_service.get_[cls.name.toLower()/](db, [cls.name.toLower()/]_id)
+
+
+@router.put("/{[cls.name.toLower()/]_id}", response_model=[cls.name/]Read)
+def update_[cls.name.toLower()/]_endpoint([cls.name.toLower()/]_id: int, payload: [cls.name/]Update, db: Session = Depends(get_db)):
+    return [cls.name.toSnakeCase()/]_service.update_[cls.name.toLower()/](db, [cls.name.toLower()/]_id, payload)
+
+
+@router.delete("/{[cls.name.toLower()/]_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_[cls.name.toLower()/]_endpoint([cls.name.toLower()/]_id: int, db: Session = Depends(get_db)):
+    [cls.name.toSnakeCase()/]_service.delete_[cls.name.toLower()/](db, [cls.name.toLower()/]_id)
+[/file]
+[/for]
+[/template]

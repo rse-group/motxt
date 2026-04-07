@@ -12,6 +12,7 @@ checkout more about us on https://motxt.ppl.cs.ui.ac.id
 from django.urls import path
 from .views import (
     landing_page,
+    dashboard,
     [for (cls : Class | model.getAllClass())][cls.getImports() /][/for]
 )
 
@@ -19,6 +20,7 @@ app_name = "main"
 
 urlpatterns = ['['/]
     path('', landing_page , name="landing_page"),
+    path('dashboard/', dashboard, name="dashboard"),
     [for (cls : Class | model.getAllClass())]
     [cls.getURLPattern() /]
 	[/for]
