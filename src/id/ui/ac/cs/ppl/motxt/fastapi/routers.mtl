@@ -1,7 +1,7 @@
 [comment encoding = UTF-8 /]
 [module routers('http://www.eclipse.org/uml2/5.0.0/UML')]
-[import com::motxt::main::utils/]
-[import com::motxt::fastapi::models/]
+[import id::ui::ac::cs::ppl::motxt::main::utils/]
+[import id::ui::ac::cs::ppl::motxt::fastapi::models/]
 
 [template public generateRouters(model : Model)]
 [file (model.getFastAPITargetApp()+'routers/__init__.py', false, 'UTF-8')]

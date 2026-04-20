@@ -1,4 +1,4 @@
-package com.motxt.main;
+package id.ui.ac.cs.ppl.motxt.main;
 
 import org.eclipse.uml2.uml.Class;
 import org.eclipse.uml2.uml.Property;

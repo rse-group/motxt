@@ -1,0 +1,2310 @@
+[comment encoding = UTF-8 /]
+[module react('http://www.eclipse.org/uml2/5.0.0/UML')]
+[import id::ui::ac::cs::ppl::motxt::main::utils/]
+
+[template public generateReact(model : Model)]
+[model.generateReactTemplate()/]
+[/template]
+
+[template private generateReactTemplate(model : Model)]
+[model.generateRootFiles()/]
+[model.generateSharedSourceFiles()/]
+[model.generateEntitySourceFiles()/]
+[/template]
+
+[template private generateRootFiles(model : Model)]
+[file (model.getReactTargetProject()+'.gitignore', false, 'UTF-8')]
+node_modules
+dist
+dist-ssr
+*.local
+.env
+
+# Editor
+.vscode/*
+!.vscode/extensions.json
+.idea
+[/file]
+[file (model.getReactTargetProject()+'.env.example', false, 'UTF-8')]
+VITE_API_BASE_URL=http://127.0.0.1:8000
+[/file]
+[file (model.getReactTargetProject()+'package.json', false, 'UTF-8')]
+{
+  "name": "[model.name.toLower()/]-react",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "axios": "^1.15.0",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "react-router-dom": "^7.14.1"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.29.0",
+    "@eslint/js": "^9.39.4",
+    "@rolldown/plugin-babel": "^0.2.2",
+    "@types/babel__core": "^7.20.5",
+    "@types/node": "^24.12.2",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.1",
+    "babel-plugin-react-compiler": "^1.0.0",
+    "eslint": "^9.39.4",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.5.2",
+    "globals": "^17.4.0",
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^3.4.17",
+    "typescript": "~6.0.2",
+    "typescript-eslint": "^8.58.0",
+    "vite": "^8.0.4"
+  }
+}
+[/file]
+[file (model.getReactTargetProject()+'index.html', false, 'UTF-8')]
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+	<link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <title>[model.name/] React</title>
+  </head>
+  <body
+    class="flex min-h-screen flex-col overflow-x-hidden bg-slate-300 font-sans transition-colors duration-200 dark:bg-slate-900"
+  >
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+[/file]
+[file (model.getReactTargetProject()+'tsconfig.json', false, 'UTF-8')]
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ['['/]"ES2022", "DOM", "DOM.Iterable"[']'/],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "jsx": "react-jsx",
+    "strict": true,
+    "types": ['['/]"vite/client"[']'/],
+    "skipLibCheck": true,
+    "allowJs": false,
+    "noEmit": true
+  },
+  "include": ['['/]"src", "vite.config.ts"[']'/]
+}
+[/file]
+[file (model.getReactTargetProject()+'vite.config.ts', false, 'UTF-8')]
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+
+const devApiTarget = (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env?.VITE_DEV_API_BASE_URL ?? 'http://127.0.0.1:8000'
+
+export default defineConfig({
+  plugins: Array.of(react()),
+  server: {
+    proxy: {
+      '/api': {
+        target: devApiTarget,
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, ''),
+      },
+    },
+  },
+})
+[/file]
+[file (model.getReactTargetProject()+'postcss.config.js', false, 'UTF-8')]
+export default {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+}
+[/file]
+[file (model.getReactTargetProject()+'tailwind.config.js', false, 'UTF-8')]
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: ['['/]'./index.html', './src/**/*.{js,ts,jsx,tsx}'],
+  theme: {
+    extend: {},
+  },
+  darkMode: 'class',
+  plugins: ['['/]],
+}
+[/file]
+[file (model.getReactTargetProject()+'run.bat', false, 'UTF-8')]
+@echo off
+setlocal
+
+if not exist node_modules (
+  call npm install
+)
+
+call npm run dev
+[/file]
+[file (model.getReactTargetProject()+'run.sh', false, 'UTF-8')]
+#!/usr/bin/env bash
+
+set -e
+
+if test ! -d node_modules; then
+  npm install
+fi
+
+npm run dev
+[/file]
+[file (model.getReactTargetProject()+'public/favicon.svg', false, 'UTF-8')]
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
+  <rect width="120" height="120" rx="24" fill="#0F172A"/>
+  <path d="M26 78L48 42H72L50 78H26Z" fill="#22D3EE"/>
+  <path d="M50 78L72 42H94L72 78H50Z" fill="#818CF8"/>
+</svg>
+[/file]
+[/template]
+
+[template private generateSharedSourceFiles(model : Model)]
+[file (model.getReactTargetProject()+'src/index.css', false, 'UTF-8')]
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+  background: linear-gradient(180deg, #e2e8f0 0%, #f8fafc 100%);
+  color: #0f172a;
+}
+
+a {
+  text-decoration: none;
+}
+
+#root {
+  display: flex;
+}
+[/file]
+[file (model.getReactTargetProject()+'src/App.css', false, 'UTF-8')]
+html {
+  scroll-behavior: smooth;
+}
+
+.app-shell {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+  flex-direction: column;
+}
+
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.45);
+  background: rgba(248, 250, 252, 0.8);
+  padding: 1rem 1.25rem;
+  backdrop-filter: blur(12px);
+}
+
+.brand-link {
+  font-size: 1.125rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #0f172a;
+}
+
+.top-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.top-nav-link {
+  border: 1px solid rgba(100, 116, 139, 0.25);
+  border-radius: 0.75rem;
+  background-color: rgba(255, 255, 255, 0.75);
+  color: #334155;
+  font-size: 0.875rem;
+  font-weight: 600;
+  padding: 0.45rem 0.8rem;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.top-nav-link:hover {
+  background-color: rgba(238, 242, 255, 0.95);
+  color: #312e81;
+}
+
+.main-layout {
+  display: grid;
+  flex: 1;
+  gap: 1rem;
+  grid-template-columns: 260px minmax(0, 1fr);
+  padding: 1rem;
+}
+
+.sidebar {
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+  padding: 1rem;
+}
+
+.sidebar-title {
+  margin: 0;
+  color: #0f172a;
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.sidebar-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  margin-top: 0.85rem;
+}
+
+.sidebar-link {
+  border-radius: 0.7rem;
+  color: #334155;
+  font-size: 0.875rem;
+  font-weight: 600;
+  padding: 0.45rem 0.65rem;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.sidebar-link:hover {
+  background-color: rgba(79, 70, 229, 0.08);
+  color: #312e81;
+}
+
+.sidebar-link.active {
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  color: #ffffff;
+}
+
+.content-panel {
+  min-width: 0;
+}
+
+.app-footer {
+  border-top: 1px solid rgba(148, 163, 184, 0.35);
+  color: #475569;
+  font-size: 0.82rem;
+  font-weight: 600;
+  margin-top: auto;
+  padding: 0.9rem 1.25rem;
+}
+
+.page-card {
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  border-radius: 1.25rem;
+  background: rgba(255, 255, 255, 0.74);
+  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.08);
+  padding: 1.1rem;
+}
+
+.page-title {
+  margin: 0;
+  color: #0f172a;
+  font-size: clamp(1.3rem, 1.8vw, 1.85rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.page-subtitle {
+  color: #475569;
+  font-size: 0.92rem;
+  margin: 0.35rem 0 0;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 1rem;
+}
+
+.primary-button,
+.ghost-button,
+.danger-button {
+  border: 1px solid transparent;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 1;
+  padding: 0.65rem 0.9rem;
+  transition: transform 0.2s ease, opacity 0.2s ease, background-color 0.2s ease;
+}
+
+.primary-button {
+  background: linear-gradient(135deg, #4f46e5, #9333ea);
+  color: #ffffff;
+}
+
+.ghost-button {
+  border-color: rgba(100, 116, 139, 0.35);
+  background: rgba(255, 255, 255, 0.72);
+  color: #334155;
+}
+
+.danger-button {
+  border-color: rgba(225, 29, 72, 0.4);
+  background: rgba(255, 228, 230, 0.7);
+  color: #9f1239;
+}
+
+.primary-button:hover,
+.ghost-button:hover,
+.danger-button:hover {
+  transform: translateY(-1px);
+}
+
+.primary-button:disabled,
+.ghost-button:disabled,
+.danger-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+  transform: none;
+}
+
+.feedback {
+  border-radius: 0.75rem;
+  margin-top: 1rem;
+  padding: 0.65rem 0.8rem;
+  background-color: rgba(226, 232, 240, 0.8);
+  color: #334155;
+  font-size: 0.875rem;
+}
+
+.feedback.error {
+  background-color: rgba(255, 228, 230, 0.95);
+  color: #9f1239;
+}
+
+.table-wrap {
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  border-radius: 1rem;
+  margin-top: 1rem;
+  overflow: auto;
+}
+
+.entity-table {
+  border-collapse: collapse;
+  min-width: 680px;
+  width: 100%;
+}
+
+.entity-table th,
+.entity-table td {
+  border-bottom: 1px solid rgba(148, 163, 184, 0.28);
+  font-size: 0.875rem;
+  padding: 0.72rem 0.75rem;
+  text-align: left;
+}
+
+.entity-table thead th {
+  background: rgba(226, 232, 240, 0.8);
+  color: #334155;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.entity-table tbody tr:hover {
+  background: rgba(238, 242, 255, 0.45);
+}
+
+.inline-actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.form-grid {
+  display: grid;
+  gap: 0.8rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  margin-top: 1rem;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.form-field label {
+  color: #334155;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.form-field input,
+.form-field select,
+.form-field textarea {
+  border: 1px solid #94a3b8;
+  border-radius: 0.75rem;
+  color: #0f172a;
+  font-size: 0.9rem;
+  padding: 0.62rem 0.75rem;
+}
+
+.form-field input:focus,
+.form-field select:focus,
+.form-field textarea:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.18);
+  outline: none;
+}
+
+.form-field input['['/]type='checkbox'[']'/] {
+  height: 1rem;
+  margin-top: 0.2rem;
+  width: 1rem;
+}
+
+.form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 1rem;
+}
+
+@media (max-width: 960px) {
+  .main-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    order: 2;
+  }
+
+  .content-panel {
+    order: 1;
+  }
+
+  .entity-table {
+    min-width: 520px;
+  }
+}
+
+.django-form-wrapper input,
+.django-form-wrapper select,
+.django-form-wrapper textarea {
+  margin-top: 0.25rem;
+  display: block;
+  width: 100%;
+  border-radius: 0.375rem;
+  border: 1px solid #d1d5db;
+  padding: 0.5rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.django-form-wrapper input:focus,
+.django-form-wrapper select:focus,
+.django-form-wrapper textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+}
+
+.django-form-wrapper p {
+  margin-bottom: 1rem;
+}
+
+.dark .django-form-wrapper input,
+.dark .django-form-wrapper select,
+.dark .django-form-wrapper textarea {
+  background-color: #1e293b;
+  border-color: #475569;
+  color: #e2e8f0;
+}
+
+.dark .django-form-wrapper input:focus,
+.dark .django-form-wrapper select:focus,
+.dark .django-form-wrapper textarea:focus {
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.3);
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  display: inline-block;
+  margin-bottom: 0.4rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #475569;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  display: block;
+  width: 100%;
+  border-radius: 0.75rem;
+  border: 1px solid #94a3b8;
+  background-color: rgba(255, 255, 255, 0.75);
+  padding: 0.7rem 0.9rem;
+  font-size: 0.875rem;
+  color: #0f172a;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+
+.form-group .helptext {
+  display: block;
+  margin-top: 0.4rem;
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.form-group ul.errorlist {
+  margin: 0 0 0.45rem;
+  padding: 0;
+  list-style: none;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #be123c;
+}
+
+.dark .form-group label {
+  color: #cbd5e1;
+}
+
+.dark .form-group input,
+.dark .form-group select,
+.dark .form-group textarea {
+  border-color: #475569;
+  background-color: #1e293b;
+  color: #e2e8f0;
+}
+
+.dark .form-group .helptext {
+  color: #94a3b8;
+}
+
+.dark .form-group ul.errorlist {
+  color: #fda4af;
+}
+
+.dark .app-header {
+  border-bottom-color: rgba(71, 85, 105, 0.6);
+  background: rgba(15, 23, 42, 0.74);
+}
+
+.dark .brand-link,
+.dark .sidebar-title,
+.dark .page-title {
+  color: #f8fafc;
+}
+
+.dark .top-nav-link,
+.dark .sidebar,
+.dark .page-card,
+.dark .ghost-button,
+.dark .table-wrap,
+.dark .form-field input,
+.dark .form-field select,
+.dark .form-field textarea {
+  border-color: rgba(71, 85, 105, 0.85);
+  background: rgba(15, 23, 42, 0.65);
+  color: #e2e8f0;
+}
+
+.dark .top-nav-link:hover,
+.dark .sidebar-link:hover,
+.dark .ghost-button:hover {
+  background: rgba(30, 41, 59, 0.95);
+  color: #f8fafc;
+}
+
+.dark .top-nav-link,
+.dark .sidebar-link,
+.dark .page-subtitle,
+.dark .app-footer,
+.dark .form-field label,
+.dark .feedback {
+  color: #cbd5e1;
+}
+
+.dark .entity-table thead th {
+  background: rgba(30, 41, 59, 0.95);
+  color: #cbd5e1;
+}
+
+.dark .entity-table th,
+.dark .entity-table td {
+  border-bottom-color: rgba(71, 85, 105, 0.6);
+}
+
+.dark .entity-table tbody tr:hover {
+  background: rgba(30, 41, 59, 0.65);
+}
+
+.dark .feedback {
+  background: rgba(30, 41, 59, 0.9);
+}
+
+.dark .feedback.error {
+  background: rgba(159, 18, 57, 0.4);
+  color: #fecdd3;
+}
+[/file]
+[file (model.getReactTargetProject()+'src/main.tsx', false, 'UTF-8')]
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+import { BrowserRouter } from 'react-router-dom'
+import './index.css'
+import App from './App'
+
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
+  </StrictMode>,
+)
+
+[/file]
+[file (model.getReactTargetProject()+'src/App.tsx', false, 'UTF-8')]
+import { Navigate, Route, Routes } from 'react-router-dom'
+import BaseLayout from './components/BaseLayout'
+import DashboardPage from './pages/DashboardPage'
+import LandingPage from './pages/LandingPage'
+[for (cls : Class | model.getAllClass())]
+import [cls.name.toUpperFirst()/]Page from './pages/[cls.name.toUpperFirst()/]Page'
+import Create[cls.name.toUpperFirst()/]Page from './pages/Create[cls.name.toUpperFirst()/]Page'
+import Edit[cls.name.toUpperFirst()/]Page from './pages/Edit[cls.name.toUpperFirst()/]Page'
+[/for]
+import './App.css'
+
+function App() {
+  return (
+    <Routes>
+      <Route element={<BaseLayout />}>
+        <Route index element={<LandingPage />} />
+        <Route path="dashboard" element={<DashboardPage />} />
+[for (cls : Class | model.getAllClass())]
+        <Route path="[cls.toRouteSegment()/]" element={<[cls.name.toUpperFirst()/]Page />} />
+        <Route path="[cls.toRouteSegment()/]/new" element={<Create[cls.name.toUpperFirst()/]Page />} />
+        <Route path="[cls.toRouteSegment()/]/:id/edit" element={<Edit[cls.name.toUpperFirst()/]Page />} />
+[/for]
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Route>
+    </Routes>
+  )
+}
+
+export default App
+[/file]
+[file (model.getReactTargetProject()+'src/components/BaseLayout.tsx', false, 'UTF-8')]
+import { Link, Outlet } from 'react-router-dom'
+import EntitySidebar from './EntitySidebar'
+
+function BaseLayout() {
+  return (
+    <div className="app-shell">
+      <header className="app-header">
+        <Link to="/" className="brand-link">[model.name/] React</Link>
+        <nav className="top-nav">
+          <Link to="/" className="top-nav-link">Home</Link>
+          <Link to="/dashboard" className="top-nav-link">Dashboard</Link>
+        </nav>
+      </header>
+
+      <div className="main-layout">
+        <EntitySidebar />
+        <main className="content-panel">
+          <Outlet />
+        </main>
+      </div>
+
+      <footer className="app-footer">Generated by MoTxT</footer>
+    </div>
+  )
+}
+
+export default BaseLayout
+[/file]
+[file (model.getReactTargetProject()+'src/components/EntitySidebar.tsx', false, 'UTF-8')]
+import { NavLink } from 'react-router-dom'
+import { ENTITY_DEFINITIONS } from '../config/entities'
+
+function EntitySidebar() {
+  return (
+    <aside className="sidebar">
+      <h2 className="sidebar-title">Entities</h2>
+      <nav className="sidebar-links">
+        {ENTITY_DEFINITIONS.map((entity) => (
+          <NavLink
+            key={entity.key}
+            to={`/${entity.path}`}
+            className={({ isActive }) => (isActive ? 'sidebar-link active' : 'sidebar-link')}
+          >
+            {entity.label}
+          </NavLink>
+        ))}
+      </nav>
+    </aside>
+  )
+}
+
+export default EntitySidebar
+[/file]
+[file (model.getReactTargetProject()+'src/types/entities.ts', false, 'UTF-8')]
+export type EntityKey =
+[for (cls : Class | model.getAllClass()) separator('\n\t| ')]
+'[cls.toEntityKey()/]'
+[/for]
+
+export type EntityFieldKind = 'string' | 'number' | 'boolean' | 'date' | 'datetime'
+
+export type EntityFieldInput = 'text' | 'number' | 'checkbox' | 'date' | 'datetime-local'
+
+export type EntityField = {
+  key: string
+  label: string
+  kind: EntityFieldKind
+  input: EntityFieldInput
+  required: boolean
+  readOnly?: boolean
+}
+
+export type EntityDefinition = {
+  key: EntityKey
+  label: string
+  path: string
+  endpointCandidates: Array<string>
+  fields: Array<EntityField>
+}
+export type DashboardEntityCard = {
+  key: EntityKey
+  label: string
+  count: number
+  fields: Array<EntityField>
+  listPath: string
+  createPath: string
+}
+[/file]
+[for (cls : Class | model.getAllClass())]
+[file (model.getReactTargetProject()+'src/types/'+cls.name.toLower()+'.ts', false, 'UTF-8')]
+export type [cls.name.toUpperFirst()/] = {
+  id: number
+[for (field : Property | cls.scalarFields())]
+[if (field.toFieldKind() = 'number')]
+  [field.name.toSnakeCase()/]: number
+[elseif (field.toFieldKind() = 'boolean')]
+  [field.name.toSnakeCase()/]: boolean
+[else]
+  [field.name.toSnakeCase()/]: string
+[/if]
+[/for]
+[for (field : Property | cls.foreignKeyFields())]
+[if (field.isForeignKeyRequired() = 'true')]
+  [field.getForeignKeyName()/]: number
+[else]
+  [field.getForeignKeyName()/]: number | null
+[/if]
+[/for]
+}
+[/file]
+[/for]
+[file (model.getReactTargetProject()+'src/config/entities.ts', false, 'UTF-8')]
+import type { EntityDefinition } from '../types/entities'
+
+export const ENTITY_DEFINITIONS: Array<EntityDefinition> = Array.of(
+[for (cls : Class | model.getAllClass()) separator(',\n')]
+  {
+    key: '[cls.toEntityKey()/]',
+    label: '[cls.name/]',
+    path: '[cls.toRouteSegment()/]',
+    endpointCandidates: Array.of('/[cls.toApiSingularSegment()/]/', '/[cls.toApiPluralSegment()/]/'),
+    fields: Array.of(
+      {
+        key: 'id',
+        label: 'Id',
+        kind: 'number',
+        input: 'number',
+        required: false,
+        readOnly: true,
+      },
+[for (field : Property | cls.scalarFields())]
+      {
+        key: '[field.name.toSnakeCase()/]',
+        label: '[field.name.toFieldLabel()/]',
+        kind: '[field.toFieldKind()/]',
+        input: '[field.toInputType()/]',
+        required: [field.isRequired()/],
+      },
+[/for]
+[for (field : Property | cls.foreignKeyFields())]
+      {
+        key: '[field.getForeignKeyName()/]',
+        label: '[field.getForeignKeyName().toFieldLabel()/]',
+        kind: 'number',
+        input: 'number',
+        required: [field.isForeignKeyRequired()/],
+      },
+[/for]
+    ),
+  }
+[/for]
+)
+
+export function toEntityRoute(path: string): string {
+  return `/${path}`
+}
+[/file]
+[file (model.getReactTargetProject()+'src/lib/entityApi.ts', false, 'UTF-8')]
+import axios, { type AxiosResponse } from 'axios'
+import type { EntityDefinition } from '../types/entities'
+
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_BASE_URL ?? '/api',
+  timeout: 10000,
+})
+
+const resolvedPathByEntityKey = new Map<string, string>()
+
+function normalizeEndpointCandidate(candidate: string): string {
+  let value = candidate.trim()
+
+  if (!value.startsWith('/')) {
+    value = `/${value}`
+  }
+
+  if (!value.endsWith('/')) {
+    value = `${value}/`
+  }
+
+  return value
+}
+
+function getEndpointCandidates(entity: EntityDefinition): Array<string> {
+  const baseCandidates =
+    entity.endpointCandidates.length > 0
+      ? entity.endpointCandidates
+      : Array.of(`/${entity.path}/`)
+
+  return baseCandidates.map((candidate) => normalizeEndpointCandidate(candidate))
+}
+
+async function withEndpointFallback<T>(
+  entity: EntityDefinition,
+  requestFn: (path: string) => Promise<T>,
+): Promise<T> {
+  const endpointCandidates = getEndpointCandidates(entity)
+  const resolvedPath = resolvedPathByEntityKey.get(entity.key)
+
+  const pathsToTry: Array<string> = resolvedPath
+    ? Array.of(resolvedPath).concat(
+        endpointCandidates.filter((path) => path !== resolvedPath),
+      )
+    : endpointCandidates
+
+  let latestError: unknown = null
+
+  for (const path of pathsToTry) {
+    try {
+      const response = await requestFn(path)
+      resolvedPathByEntityKey.set(entity.key, path)
+      return response
+    } catch (error) {
+      latestError = error
+      const axiosError = axios.isAxiosError(error) ? error : null
+      const statusCode = axiosError?.response?.status
+
+      if (statusCode === 404 || statusCode === 405) {
+        continue
+      }
+
+      throw error
+    }
+  }
+
+  throw latestError ?? new Error(`Unable to resolve endpoint path for ${entity.label}.`)
+}
+
+function toRecord(value: unknown): Record<string, unknown> {
+  if (typeof value === 'object' && value !== null) {
+    return value as Record<string, unknown>
+  }
+
+  return {}
+}
+
+export function formatApiError(error: unknown): string {
+  const axiosError = axios.isAxiosError(error) ? error : null
+
+  if (!axiosError) {
+    return 'An unexpected error occurred while contacting the API.'
+  }
+
+  const detail = Reflect.get(axiosError.response?.data ?? {}, 'detail')
+  if (typeof detail === 'string') {
+    return detail
+  }
+
+  if (axiosError.code === 'ECONNABORTED') {
+    return 'Request timed out. Please make sure the backend is running.'
+  }
+
+  return axiosError.message || 'Unable to reach the API.'
+}
+
+export async function listEntities(entity: EntityDefinition): Promise<Array<Record<string, unknown>>> {
+  const response = await withEndpointFallback<AxiosResponse<Array<unknown>>>(entity, (path) =>
+    api.get<Array<unknown>>(path),
+  )
+
+  return response.data.map((row) => toRecord(row))
+}
+
+export async function getEntityById(
+  entity: EntityDefinition,
+  entityId: number,
+): Promise<Record<string, unknown>> {
+  const response = await withEndpointFallback<AxiosResponse<unknown>>(entity, (path) =>
+    api.get<unknown>(`${path}${entityId}`),
+  )
+
+  return toRecord(response.data)
+}
+
+export async function createEntity(
+  entity: EntityDefinition,
+  payload: Record<string, unknown>,
+): Promise<void> {
+  await withEndpointFallback(entity, (path) => api.post(path, payload))
+}
+
+export async function updateEntity(
+  entity: EntityDefinition,
+  entityId: number,
+  payload: Record<string, unknown>,
+): Promise<void> {
+  await withEndpointFallback(entity, (path) => api.put(`${path}${entityId}`, payload))
+}
+
+export async function deleteEntityById(
+  entity: EntityDefinition,
+  entityId: number,
+): Promise<void> {
+  await withEndpointFallback(entity, (path) => api.delete(`${path}${entityId}`))
+}
+[/file]
+[for (cls : Class | model.getAllClass())]
+[file (model.getReactTargetProject()+'src/lib/'+cls.name.toLower()+'Api.ts', false, 'UTF-8')]
+import axios, { type AxiosResponse } from 'axios'
+import type { [cls.name.toUpperFirst()/] } from '../types/[cls.name.toLower()/]'
+
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_BASE_URL ?? '/api',
+  timeout: 10000,
+})
+
+const [cls.name.toLower()/]PathCandidates = ['['/]'/[cls.toApiSingularSegment()/]/', '/[cls.toApiPluralSegment()/]/'] as const
+
+type [cls.name.toUpperFirst()/]Path = (typeof [cls.name.toLower()/]PathCandidates)['['/]number]
+
+let resolved[cls.name.toUpperFirst()/]Path: [cls.name.toUpperFirst()/]Path | null = null
+
+function normalize[cls.name.toUpperFirst()/](payload: unknown): [cls.name.toUpperFirst()/] {
+  const data = (payload ?? {}) as Record<string, unknown>
+
+  return {
+    id: Number(data.id ?? 0),
+[for (field : Property | cls.scalarFields())]
+[if (field.toFieldKind() = 'number')]
+    [field.name.toSnakeCase()/]: Number(data.[field.name.toSnakeCase()/] ?? 0),
+[elseif (field.toFieldKind() = 'boolean')]
+    [field.name.toSnakeCase()/]: Boolean(data.[field.name.toSnakeCase()/] ?? false),
+[else]
+    [field.name.toSnakeCase()/]: String(data.[field.name.toSnakeCase()/] ?? ''),
+[/if]
+[/for]
+[for (field : Property | cls.foreignKeyFields())]
+[if (field.isForeignKeyRequired() = 'true')]
+    [field.getForeignKeyName()/]: Number(data.[field.getForeignKeyName()/] ?? 0),
+[else]
+    [field.getForeignKeyName()/]: data.[field.getForeignKeyName()/] === null || data.[field.getForeignKeyName()/] === undefined ? null : Number(data.[field.getForeignKeyName()/]),
+[/if]
+[/for]
+  }
+}
+
+async function with[cls.name.toUpperFirst()/]PathFallback<T>(
+  requestFn: (path: [cls.name.toUpperFirst()/]Path) => Promise<T>,
+): Promise<T> {
+  const pathsToTry: [cls.name.toUpperFirst()/]Path['['/]] = resolved[cls.name.toUpperFirst()/]Path
+    ? ['['/]
+        resolved[cls.name.toUpperFirst()/]Path,
+        ...[cls.name.toLower()/]PathCandidates.filter((path) => path !== resolved[cls.name.toUpperFirst()/]Path),
+      ]
+    : ['['/]...[cls.name.toLower()/]PathCandidates]
+
+  let latestError: unknown = null
+
+  for (const path of pathsToTry) {
+    try {
+      const response = await requestFn(path)
+      resolved[cls.name.toUpperFirst()/]Path = path
+      return response
+    } catch (error) {
+      latestError = error
+      const axiosError = axios.isAxiosError(error) ? error : null
+      if (axiosError) {
+        const statusCode = axiosError.response?.status
+        if (statusCode === 404 || statusCode === 405) {
+          continue
+        }
+      }
+      throw error
+    }
+  }
+
+  throw latestError ?? new Error('Unable to resolve [cls.name.toLower()/] endpoint path.')
+}
+
+export async function list[cls.toListFunctionSuffix()/](): Promise<[cls.name.toUpperFirst()/]['['/]]> {
+  const response = await with[cls.name.toUpperFirst()/]PathFallback<AxiosResponse<unknown['['/]]>>((path) =>
+    api.get<unknown['['/]]>(path),
+  )
+
+  return response.data.map((entry: unknown) => normalize[cls.name.toUpperFirst()/](entry))
+}
+[/file]
+[/for]
+[file (model.getReactTargetProject()+'src/pages/LandingPage.tsx', false, 'UTF-8')]
+import { Link } from 'react-router-dom'
+import { ENTITY_DEFINITIONS, toEntityRoute } from '../config/entities'
+
+function LandingPage() {
+    return (
+        <>
+            <section className="relative mx-4 overflow-hidden rounded-3xl border border-white/20 bg-white/30 px-6 py-10 shadow-2xl backdrop-blur-xl dark:border-white/10 dark:bg-slate-900/40 md:mx-8 md:px-10 lg:mx-12 lg:py-14">
+                <div className="pointer-events-none absolute -left-24 -top-20 h-72 w-72 rounded-full bg-fuchsia-500/30 blur-3xl"></div>
+                <div className="pointer-events-none absolute -right-20 top-10 h-64 w-64 rounded-full bg-cyan-400/30 blur-3xl"></div>
+                <div className="pointer-events-none absolute bottom-0 left-1/3 h-56 w-56 rounded-full bg-violet-500/30 blur-3xl"></div>
+
+                <div className="relative grid gap-10 lg:grid-cols-2 lg:items-center">
+                    <div>
+                        <p className="mb-4 inline-flex rounded-full border border-white/30 bg-white/30 px-4 py-1 text-xs font-semibold uppercase tracking-['['/]0.2em] text-slate-700 dark:bg-slate-800/50 dark:text-slate-200">
+                            Universal CRUD Platform
+                        </p>
+                        <h1 className="text-4xl font-black tracking-tight text-slate-900 dark:text-white md:text-5xl">
+                            [model.name/]
+                        </h1>
+
+                        <div className="mt-8 flex flex-wrap gap-3">
+                            <Link
+                                to="/dashboard"
+                                className="inline-flex items-center rounded-xl bg-gradient-to-r from-indigo-600 via-violet-600 to-fuchsia-600 px-6 py-3 font-semibold text-white shadow-lg shadow-indigo-600/30 transition-transform duration-300 hover:-translate-y-0.5"
+                            >
+                                Launch Dashboard
+                            </Link>
+                            <a
+                                href="#entities"
+                                className="inline-flex items-center rounded-xl border border-slate-300/70 bg-white/50 px-6 py-3 font-semibold text-slate-800 backdrop-blur-md transition-colors hover:bg-white/80 dark:border-slate-600 dark:bg-slate-800/50 dark:text-slate-100 dark:hover:bg-slate-800"
+                            >
+                                Explore Entities
+                            </a>
+                        </div>
+                    </div>
+
+                    <div className="relative min-h-80 rounded-3xl border border-white/30 bg-gradient-to-br from-slate-900/80 via-indigo-900/70 to-violet-900/70 p-6 shadow-2xl backdrop-blur-xl dark:border-white/10">
+                        <div className="absolute -right-6 -top-8 h-20 w-20 rotate-12 rounded-3xl bg-cyan-300/40 blur-sm"></div>
+                        <div className="absolute -bottom-8 -left-5 h-24 w-24 -rotate-12 rounded-full bg-fuchsia-300/30 blur-sm"></div>
+                        <div className="relative grid gap-4 md:grid-cols-2">
+                            <div className="rounded-2xl border border-white/20 bg-white/10 p-4">
+                                <p className="text-xs uppercase tracking-['['/]0.18em] text-indigo-100">Live Workspace</p>
+                                <h3 className="mt-2 text-xl font-bold text-white">Operations Overview</h3>
+                                <div className="mt-4 text-sm">
+                                    <div className="rounded-xl bg-white/10 p-3 text-indigo-50">
+                                        Total Entities
+                                        <br />
+                                        <span className="text-lg font-bold">{ENTITY_DEFINITIONS.length}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="rounded-2xl border border-white/20 bg-white/10 p-4">
+                                <p className="text-xs uppercase tracking-['['/]0.18em] text-indigo-100">Relational Entities</p>
+                                <div className="mt-2 flex max-h-52 flex-col gap-3 overflow-y-auto pr-1 text-sm font-semibold text-white/95">
+                                    {ENTITY_DEFINITIONS.map((entity) => (
+                                        <span key={entity.key} className="inline-flex w-fit rounded-full bg-white/20 px-4 py-2">
+                                            {entity.label}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="entities" className="mx-4 mt-10 grid gap-4 md:mx-8 md:grid-cols-2 lg:mx-12 lg:grid-cols-3">
+                {ENTITY_DEFINITIONS.map((entity) => (
+                    <Link
+                        key={entity.key}
+                        to={toEntityRoute(entity.path)}
+                        className="group rounded-2xl border border-slate-200/70 bg-white/60 p-5 shadow-lg backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:border-indigo-400/60 dark:border-slate-700 dark:bg-slate-800/50"
+                    >
+                        <p className="text-xs uppercase tracking-['['/]0.16em] text-slate-500 dark:text-slate-400">Entity</p>
+                        <h2 className="mt-2 text-xl font-bold text-slate-900 dark:text-white">{entity.label}</h2>
+                        <p className="mt-3 text-sm text-slate-600 dark:text-slate-300">
+                            Open and manage records with a flexible, modern CRUD workflow.
+                        </p>
+                        <span className="mt-4 inline-flex text-sm font-semibold text-indigo-600 transition-transform group-hover:translate-x-1 dark:text-indigo-300">
+                            Open view →
+                        </span>
+                    </Link>
+                ))}
+            </section>
+        </>
+    )
+}
+
+export default LandingPage
+[/file]
+[file (model.getReactTargetProject()+'src/pages/DashboardPage.tsx', false, 'UTF-8')]
+import { type CSSProperties, useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
+import { ENTITY_DEFINITIONS, toEntityRoute } from '../config/entities'
+[for (cls : Class | model.getAllClass())]
+import { list[cls.toListFunctionSuffix()/] } from '../lib/[cls.name.toLower()/]Api'
+[/for]
+import type { DashboardEntityCard } from '../types/entities'
+
+function DashboardPage() {
+	[for (cls : Class | model.getAllClass())]
+    const ['['/][cls.name.toLower()/]Count, set[cls.name.toTitleCase()/]Count] = useState(0)
+	[/for]
+    const ['['/]currentIndex, setCurrentIndex] = useState(0)
+    const ['['/]isHovered, setIsHovered] = useState(false)
+    const ['['/]isDocumentHidden, setIsDocumentHidden] = useState<boolean>(document.hidden)
+
+    useEffect(() => {
+        let isMounted = true
+		[for (cls : Class | model.getAllClass())]
+        const load[cls.name.toTitleCase()/]Count = async () => {
+            try {
+        const [cls.name.toLower()/]Rows = await list[cls.toListFunctionSuffix()/]()
+                if (isMounted) {
+                    set[cls.name.toTitleCase()/]Count([cls.name.toLower()/]Rows.length)
+                }
+            } catch {
+                if (isMounted) {
+                    set[cls.name.toTitleCase()/]Count(0)
+                }
+            }
+        }
+
+        void load[cls.name.toTitleCase()/]Count()
+		[/for]
+        return () => {
+            isMounted = false
+        }
+    }, ['['/]])
+
+    const entityCountByKey = useMemo<Record<string, number>>(() => {
+      return {
+  [for (cls : Class | model.getAllClass()) separator(',\n')]
+        '[cls.toEntityKey()/]': [cls.name.toLower()/]Count
+  [/for]
+      }
+    }, ['['/][for (cls : Class | model.getAllClass()) separator(', ')][cls.name.toLower()/]Count[/for]])
+
+    const entityCards = useMemo<DashboardEntityCard['['/]]>(() => {
+        return ENTITY_DEFINITIONS.map((entity) => ({
+            key: entity.key,
+            label: entity.label,
+            fields: entity.fields,
+        count: entityCountByKey['['/]entity.key] ?? 0,
+            listPath: toEntityRoute(entity.path),
+        createPath: `${toEntityRoute(entity.path)}/new`,
+        }))
+    }, ['['/]entityCountByKey])
+
+    const totalSlides = entityCards.length
+    const activeIndex = totalSlides === 0 ? 0 : currentIndex % totalSlides
+
+    useEffect(() => {
+        const onVisibilityChange = () => {
+            setIsDocumentHidden(document.hidden)
+        }
+
+        document.addEventListener('visibilitychange', onVisibilityChange)
+        return () => document.removeEventListener('visibilitychange', onVisibilityChange)
+    }, ['['/]])
+
+    useEffect(() => {
+        if (isHovered || isDocumentHidden || totalSlides === 0) {
+            return undefined
+        }
+
+        const timer = window.setInterval(() => {
+            setCurrentIndex((previous) => (previous + 1) % totalSlides)
+        }, 4500)
+
+        return () => window.clearInterval(timer)
+    }, ['['/]isHovered, isDocumentHidden, totalSlides])
+
+    const getCardStyle = (index: number): CSSProperties => {
+        if (totalSlides === 0) {
+            return {}
+        }
+
+        const rawOffset = index - activeIndex
+        const wrappedOffset =
+            ((rawOffset + totalSlides + Math.floor(totalSlides / 2)) % totalSlides) -
+            Math.floor(totalSlides / 2)
+        const absOffset = Math.abs(wrappedOffset)
+        const isVisible = absOffset <= 2
+        const translateX = wrappedOffset * 110
+        const scale = Math.max(0.7, 1 - absOffset * 0.12)
+        const rotateY = wrappedOffset * -14
+        const opacity = isVisible ? Math.max(0.2, 1 - absOffset * 0.28) : 0
+        const zIndex = 40 - absOffset
+
+        return {
+            transform: `translate(-50%, -50%) translateX(${translateX}%) scale(${scale}) rotateY(${rotateY}deg)`,
+            opacity,
+            zIndex,
+            filter: absOffset === 0 ? 'none' : 'saturate(0.85)',
+            pointerEvents: absOffset === 0 ? 'auto' : 'none',
+        }
+    }
+
+    const goPrevious = () => {
+        if (totalSlides === 0) return
+        setCurrentIndex((previous) => (previous - 1 + totalSlides) % totalSlides)
+    }
+
+    const goNext = () => {
+        if (totalSlides === 0) return
+        setCurrentIndex((previous) => (previous + 1) % totalSlides)
+    }
+
+    return (
+        <>
+            <section className="mx-4 rounded-3xl border border-white/20 bg-white/40 px-6 py-8 shadow-2xl backdrop-blur-xl dark:border-white/10 dark:bg-slate-900/45 md:mx-8 md:px-10 lg:mx-12">
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                    <div>
+                        <p className="text-xs font-semibold uppercase tracking-['['/]0.18em] text-slate-500 dark:text-slate-400">
+                            Overview
+                        </p>
+                        <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-900 dark:text-white md:text-4xl">
+                            Dashboard
+                        </h1>
+                    </div>
+                    <Link
+                        to="/"
+                        className="inline-flex items-center rounded-xl border border-slate-300/70 bg-white/60 px-4 py-2 text-sm font-semibold text-slate-800 backdrop-blur-md transition-colors hover:bg-white/80 dark:border-slate-600 dark:bg-slate-800/50 dark:text-slate-100 dark:hover:bg-slate-800"
+                    >
+                        Back to Landing
+                    </Link>
+                </div>
+            </section>
+
+            <section className="mx-4 mb-2 mt-6 rounded-3xl border border-white/20 bg-white/40 p-6 shadow-xl backdrop-blur-xl dark:border-white/10 dark:bg-slate-900/45 md:mx-8 lg:mx-12">
+                <div className="flex items-center justify-between gap-3">
+                    <h2 className="text-xl font-bold text-slate-900 dark:text-white">Entity Carousel</h2>
+                    <div className="flex items-center gap-2">
+                        <button
+                            id="carouselPrev"
+                            type="button"
+                            aria-label="Previous slide"
+                            onClick={goPrevious}
+                            className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-300/70 bg-white/70 text-lg font-bold text-slate-800 transition-colors hover:bg-white dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
+                        >
+                            ←
+                        </button>
+                        <button
+                            id="carouselNext"
+                            type="button"
+                            aria-label="Next slide"
+                            onClick={goNext}
+                            className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-r from-indigo-600 to-violet-600 text-lg font-bold text-white shadow-md shadow-indigo-500/20 transition-opacity hover:opacity-95"
+                        >
+                            →
+                        </button>
+                    </div>
+                </div>
+
+                <div
+                    className="mt-5"
+                    data-entity-carousel
+                    onMouseEnter={() => setIsHovered(true)}
+                    onMouseLeave={() => setIsHovered(false)}
+                >
+                    <div
+                        className="relative h-['['/]500px] overflow-hidden ['['/]perspective:1200px] sm:h-['['/]560px] lg:h-['['/]620px]"
+                        id="carouselStage"
+                    >
+                        {entityCards.map((entity, index) => (
+                            <article
+                                key={entity.key}
+                                className="carousel-card absolute left-1/2 top-1/2 flex h-['['/]360px] w-['['/]75vw] max-w-['['/]420px] -translate-x-1/2 -translate-y-1/2 flex-col rounded-2xl border border-slate-200/70 bg-gradient-to-br from-cyan-500 to-indigo-600 p-7 text-white shadow-2xl shadow-indigo-500/20 transition-all duration-500 ease-out dark:border-slate-700 max-['['/]360px]:h-['['/]330px] max-['['/]360px]:w-['['/]80vw] max-['['/]360px]:p-5 sm:h-['['/]420px] sm:w-['['/]420px] lg:h-['['/]480px] lg:w-['['/]460px]"
+                                data-card-index={index}
+                                style={getCardStyle(index)}
+                            >
+                                <p className="text-sm uppercase tracking-['['/]0.16em] text-white/80">Total {entity.label}</p>
+                                <p className="mt-3 text-6xl font-black sm:text-7xl">{entity.count}</p>
+                                <h3 className="mt-1 text-2xl font-bold">{entity.label}</h3>
+
+                                <div className="mt-4 rounded-xl border border-white/25 bg-white/10 p-3">
+                                    <p className="text-xs font-semibold uppercase tracking-['['/]0.14em] text-white/80">Fields</p>
+                                    <div className="mt-2 flex h-24 flex-wrap gap-1 overflow-y-auto pr-1 sm:h-28 lg:h-32">
+                                        {entity.fields.map((field) => (
+                                            <span
+                                            key={`${entity.key}-${field.key}`}
+                                                className="inline-flex h-fit rounded-full border border-white/30 bg-white/15 px-2.5 py-1 text-xs font-medium text-white/95"
+                                            >
+                                            {field.label}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="mt-auto flex flex-wrap gap-2 pt-4">
+                                    <Link
+                                        to={entity.listPath}
+                                        className="inline-flex items-center rounded-lg border border-white/35 bg-white/20 px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-white/30"
+                                    >
+                                        View All
+                                    </Link>
+                                    <Link
+                                        to={entity.createPath}
+                                        className="inline-flex items-center rounded-lg bg-white px-3 py-2 text-sm font-semibold text-indigo-700 transition-colors hover:bg-white/90"
+                                    >
+                                        Create
+                                    </Link>
+                                </div>
+                            </article>
+                        ))}
+                    </div>
+
+                    <div className="mt-4 flex justify-center gap-2">
+                        {entityCards.map((entity, index) => (
+                            <button
+                                key={`${entity.key}-dot`}
+                                type="button"
+                                className={`carousel-dot h-2.5 w-2.5 rounded-full ${index === activeIndex ? 'bg-indigo-600 dark:bg-indigo-400' : 'bg-slate-300 dark:bg-slate-600'
+                                    }`}
+                                data-slide-index={index}
+                                aria-label={`Go to ${entity.label}`}
+                                onClick={() => setCurrentIndex(index)}
+                            ></button>
+                        ))}
+                    </div>
+                </div>
+            </section>
+        </>
+    )
+}
+
+export default DashboardPage
+[/file]
+[file (model.getReactTargetProject()+'src/pages/EntityPage.tsx', false, 'UTF-8')]
+import { type ChangeEvent, type FormEvent, useCallback, useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
+import { ENTITY_DEFINITIONS } from '../config/entities'
+import { createEntity, deleteEntityById, formatApiError, listEntities, updateEntity } from '../lib/entityApi'
+import type { EntityDefinition, EntityField } from '../types/entities'
+
+type EntityPageProps = {
+  entityKey: string
+}
+
+function normalizeDisplayValue(value: unknown): string {
+  if (value === null || value === undefined || value === '') {
+    return '-'
+  }
+
+  if (typeof value === 'boolean') {
+    return value ? 'true' : 'false'
+  }
+
+  return String(value)
+}
+
+function getRowId(row: Record<string, unknown>): number {
+  const rawId = Reflect.get(row, 'id')
+
+  if (typeof rawId === 'number') {
+    return rawId
+  }
+
+  const parsed = Number(rawId)
+  return Number.isNaN(parsed) ? 0 : parsed
+}
+
+function createInitialState(entity: EntityDefinition): Record<string, unknown> {
+  const initialState: Record<string, unknown> = {}
+
+  entity.fields
+    .filter((field) => !field.readOnly)
+    .forEach((field) => {
+      Reflect.set(initialState, field.key, field.input === 'checkbox' ? false : '')
+    })
+
+  return initialState
+}
+
+function mapFieldValue(field: EntityField, value: unknown): unknown {
+  if (field.kind === 'boolean') {
+    return Boolean(value)
+  }
+
+  if (field.kind === 'number') {
+    if (value === '' || value === null || value === undefined) {
+      return field.required ? 0 : null
+    }
+
+    const parsed = Number(value)
+    return Number.isNaN(parsed) ? null : parsed
+  }
+
+  if (value === '' || value === null || value === undefined) {
+    return field.required ? '' : null
+  }
+
+  return String(value)
+}
+
+function EntityPage({ entityKey }: EntityPageProps) {
+  const ['['/]searchParams, setSearchParams] = useSearchParams()
+  const entity = useMemo<EntityDefinition | undefined>(() => {
+    return ENTITY_DEFINITIONS.find((candidate) => candidate.key === entityKey)
+  }, ['['/]entityKey])
+
+  const editableFields = useMemo<Array<EntityField>>(() => {
+    if (!entity) {
+      return Array.of()
+    }
+
+    return entity.fields.filter((field) => !field.readOnly)
+  }, ['['/]entity])
+
+  const ['['/]rows, setRows] = useState<Array<Record<string, unknown>>>(Array.of())
+  const ['['/]isLoading, setIsLoading] = useState(true)
+  const ['['/]isSubmitting, setIsSubmitting] = useState(false)
+  const ['['/]pendingDeleteId, setPendingDeleteId] = useState<number | null>(null)
+  const ['['/]isModalOpen, setIsModalOpen] = useState(false)
+  const ['['/]editingRowId, setEditingRowId] = useState<number | null>(null)
+  const ['['/]formState, setFormState] = useState<Record<string, unknown>>(Array.of())
+  const ['['/]deleteTargetId, setDeleteTargetId] = useState<number | null>(null)
+  const ['['/]errorMessage, setErrorMessage] = useState<string | null>(null)
+  const ['['/]deleteErrorMessage, setDeleteErrorMessage] = useState<string | null>(null)
+
+  const loadRows = useCallback(async () => {
+    if (!entity) {
+      setRows(Array.of())
+      setIsLoading(false)
+      return
+    }
+
+    setIsLoading(true)
+    setErrorMessage(null)
+
+    try {
+      const responseRows = await listEntities(entity)
+      setRows(responseRows)
+    } catch (error) {
+      setRows(Array.of())
+      setErrorMessage(formatApiError(error))
+    } finally {
+      setIsLoading(false)
+    }
+  }, ['['/]entity])
+
+  useEffect(() => {
+    void loadRows()
+  }, ['['/]loadRows])
+
+  const openCreateModal = useCallback(() => {
+    if (!entity) {
+      return
+    }
+
+    setEditingRowId(null)
+    setFormState(createInitialState(entity))
+    setDeleteTargetId(null)
+    setErrorMessage(null)
+    setIsModalOpen(true)
+  }, ['['/]entity])
+
+  const openEditModalById = useCallback((rowId: number) => {
+    if (!entity || rowId <= 0) {
+      return
+    }
+
+    const sourceRow = rows.find((row) => getRowId(row) === rowId)
+    const nextState = createInitialState(entity)
+
+    if (sourceRow) {
+      editableFields.forEach((field) => {
+        const existingValue = Reflect.get(sourceRow, field.key)
+        if (existingValue !== undefined && existingValue !== null) {
+          Reflect.set(nextState, field.key, existingValue)
+        }
+      })
+    }
+
+    setEditingRowId(rowId)
+    setFormState(nextState)
+    setDeleteTargetId(null)
+    setErrorMessage(null)
+    setIsModalOpen(true)
+  }, ['['/]editableFields, entity, rows])
+
+  useEffect(() => {
+    if (!entity) {
+      return
+    }
+
+    const mode = searchParams.get('mode')
+    const idRaw = searchParams.get('id')
+
+    if (mode === 'create') {
+      openCreateModal()
+    } else if (mode === 'edit' && idRaw) {
+      const parsedId = Number(idRaw)
+      if (!Number.isNaN(parsedId) && parsedId > 0) {
+        openEditModalById(parsedId)
+      }
+    } else {
+      return
+    }
+
+    const nextParams = new URLSearchParams(searchParams)
+    nextParams.delete('mode')
+    nextParams.delete('id')
+    setSearchParams(nextParams, { replace: true })
+  }, ['['/]entity, openCreateModal, openEditModalById, searchParams, setSearchParams])
+
+  const updateField = (fieldKey: string, value: unknown) => {
+    setFormState((previous) => {
+      const nextState = { ...previous }
+      Reflect.set(nextState, fieldKey, value)
+      return nextState
+    })
+  }
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+
+    if (!entity) {
+      return
+    }
+
+    const missingRequiredField = editableFields.find((field) => {
+      if (!field.required || field.input === 'checkbox') {
+        return false
+      }
+
+      const value = Reflect.get(formState, field.key)
+      return value === '' || value === null || value === undefined
+    })
+
+    if (missingRequiredField) {
+      setErrorMessage(`${missingRequiredField.label} is required.`)
+      return
+    }
+
+    const payload: Record<string, unknown> = {}
+    editableFields.forEach((field) => {
+      const rawValue = Reflect.get(formState, field.key)
+      Reflect.set(payload, field.key, mapFieldValue(field, rawValue))
+    })
+
+    setIsSubmitting(true)
+    setErrorMessage(null)
+
+    try {
+      if (editingRowId && editingRowId > 0) {
+        await updateEntity(entity, editingRowId, payload)
+      } else {
+        await createEntity(entity, payload)
+      }
+
+      setIsModalOpen(false)
+      setEditingRowId(null)
+      setFormState(createInitialState(entity))
+      await loadRows()
+    } catch (error) {
+      setErrorMessage(formatApiError(error))
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const openDeleteModal = (rowId: number) => {
+    if (rowId <= 0 || pendingDeleteId !== null) {
+      return
+    }
+
+    setDeleteErrorMessage(null)
+    setDeleteTargetId(rowId)
+  }
+
+  const closeDeleteModal = () => {
+    if (pendingDeleteId !== null) {
+      return
+    }
+
+    setDeleteTargetId(null)
+    setDeleteErrorMessage(null)
+  }
+
+  const handleDelete = async () => {
+    if (!entity || !deleteTargetId || deleteTargetId <= 0 || pendingDeleteId !== null) {
+      return
+    }
+
+    setDeleteErrorMessage(null)
+    setPendingDeleteId(deleteTargetId)
+
+    try {
+      await deleteEntityById(entity, deleteTargetId)
+      setDeleteTargetId(null)
+      await loadRows()
+    } catch (error) {
+      setDeleteErrorMessage(formatApiError(error))
+    } finally {
+      setPendingDeleteId(null)
+    }
+  }
+
+  if (!entity) {
+    return (
+      <section className="page-card">
+        <h1 className="page-title">Unknown Entity</h1>
+        <p className="page-subtitle">The requested entity key does not exist.</p>
+      </section>
+    )
+  }
+
+  return (
+    <>
+      <section className="relative mx-4 overflow-hidden md:mx-8 lg:mx-12">
+        <div className="relative space-y-6">
+          <header className="rounded-3xl border border-white/20 bg-white/60 px-4 py-6 shadow-xl backdrop-blur-xl dark:border-white/10 dark:bg-slate-900/50 sm:px-6">
+            <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-semibold uppercase tracking-['['/]0.18em] text-slate-500 dark:text-slate-400">
+                  Entity
+                </p>
+                <h1 className="mt-1 text-xl font-black tracking-tight text-slate-900 dark:text-white sm:text-2xl lg:text-3xl">
+                  {entity.label} List
+                </h1>
+                <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
+                  Manage {entity.label.toLowerCase()} records.
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={openCreateModal}
+                  className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-gradient-to-r from-indigo-600 via-violet-600 to-fuchsia-600 px-4 py-2 text-xs font-semibold leading-none text-white shadow-lg shadow-violet-600/30 transition-transform duration-300 hover:-translate-y-0.5 sm:px-5 sm:py-2.5 sm:text-sm"
+                >
+                  Create New
+                </button>
+                <button type="button" onClick={() => void loadRows()} className="ghost-button">Reload</button>
+              </div>
+            </div>
+          </header>
+
+          {errorMessage && (
+            <p className="rounded-xl border border-rose-300 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700 dark:border-rose-700 dark:bg-rose-900/30 dark:text-rose-200">
+              {errorMessage}
+            </p>
+          )}
+
+          <article className="overflow-hidden rounded-3xl border border-white/20 bg-white/60 shadow-xl backdrop-blur-xl dark:border-white/10 dark:bg-slate-900/50">
+            <div className="max-h-['['/]70vh] min-h-['['/]14rem] overflow-x-auto overflow-y-auto sm:min-h-['['/]20rem] lg:min-h-['['/]26rem]">
+              <table className="min-w-max w-full divide-y divide-slate-200/70 dark:divide-slate-700/80" aria-label={`${entity.label} table`}>
+                <thead className="bg-slate-100/80 dark:bg-slate-800/70">
+                  <tr>
+                    {entity.fields.map((field) => (
+                      <th
+                        key={`${entity.key}-header-${field.key}`}
+                        className="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-['['/]0.11em] text-slate-600 dark:text-slate-300 sm:px-6"
+                      >
+                        {field.label}
+                      </th>
+                    ))}
+                    <th className="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-['['/]0.11em] text-slate-600 dark:text-slate-300 sm:px-6">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-200/70 bg-white/30 dark:divide-slate-700/80 dark:bg-slate-900/10">
+                  {isLoading && (
+                    <tr>
+                      <td colSpan={entity.fields.length + 1} className="px-4 py-8 text-center text-sm text-slate-600 dark:text-slate-300 sm:px-6">
+                        Loading...
+                      </td>
+                    </tr>
+                  )}
+
+                  {!isLoading && rows.length === 0 && (
+                    <tr>
+                      <td colSpan={entity.fields.length + 1} className="px-4 py-8 text-center text-sm text-slate-600 dark:text-slate-300 sm:px-6">
+                        No records found.
+                      </td>
+                    </tr>
+                  )}
+
+                  {!isLoading && rows.map((row) => {
+                    const rowId = getRowId(row)
+
+                    return (
+                      <tr key={`${entity.key}-${rowId}`} className="transition-colors hover:bg-indigo-50/70 dark:hover:bg-slate-800/70">
+                        {entity.fields.map((field) => (
+                          <td
+                            key={`${entity.key}-${rowId}-${field.key}`}
+                            className="whitespace-nowrap px-4 py-3 text-sm text-slate-700 dark:text-slate-200 sm:px-6"
+                          >
+                            {normalizeDisplayValue(Reflect.get(row, field.key))}
+                          </td>
+                        ))}
+                        <td className="whitespace-nowrap px-4 py-3 text-sm sm:px-6">
+                          <div className="flex gap-2">
+                            <button
+                              type="button"
+                              className="inline-flex items-center rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-1.5 font-semibold text-indigo-700 transition hover:bg-indigo-100 dark:border-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-200 dark:hover:bg-indigo-900/60"
+                              onClick={() => openEditModalById(rowId)}
+                              disabled={rowId <= 0}
+                            >
+                              Edit
+                            </button>
+                            <button
+                              type="button"
+                              className="inline-flex items-center rounded-lg border border-rose-300 bg-rose-50 px-3 py-1.5 font-semibold text-rose-700 transition hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-70 dark:border-rose-800 dark:bg-rose-900/30 dark:text-rose-300 dark:hover:bg-rose-900/50"
+                              onClick={() => openDeleteModal(rowId)}
+                              disabled={pendingDeleteId === rowId || rowId <= 0}
+                            >
+                              {pendingDeleteId === rowId ? 'Deleting...' : 'Delete'}
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </article>
+
+          <button
+            type="button"
+            onClick={openCreateModal}
+            className="fixed bottom-8 right-8 z-30 grid h-14 w-14 place-items-center rounded-full bg-gradient-to-r from-indigo-600 to-fuchsia-600 text-3xl font-bold text-white shadow-2xl shadow-indigo-500/30 transition-transform duration-300 hover:scale-105"
+          >
+            +
+          </button>
+        </div>
+      </section>
+
+      <section
+        className={`fixed inset-0 z-50 items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm ${deleteTargetId ? 'flex' : 'hidden'}`}
+        onMouseDown={(event) => {
+          if (event.target === event.currentTarget) {
+            closeDeleteModal()
+          }
+        }}
+      >
+        <div className="w-full max-w-lg rounded-3xl border border-white/20 bg-white/85 p-6 shadow-2xl backdrop-blur-xl dark:border-white/10 dark:bg-slate-900/85">
+          <h2 className="text-2xl font-black text-slate-900 dark:text-white">Delete {entity.label}</h2>
+          <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">This action cannot be undone.</p>
+
+          {deleteErrorMessage && (
+            <p className="mt-4 rounded-xl border border-rose-300 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700 dark:border-rose-700 dark:bg-rose-900/30 dark:text-rose-200">
+              {deleteErrorMessage}
+            </p>
+          )}
+
+          <div className="mt-5 flex justify-end gap-2">
+            <button type="button" onClick={closeDeleteModal} disabled={pendingDeleteId !== null} className="ghost-button">Cancel</button>
+            <button
+              type="button"
+              onClick={() => {
+                void handleDelete()
+              }}
+              disabled={pendingDeleteId !== null}
+              className="danger-button"
+            >
+              {pendingDeleteId !== null ? 'Deleting...' : 'Delete'}
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section
+        className={`fixed inset-0 z-40 items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm ${isModalOpen ? 'flex' : 'hidden'}`}
+        onMouseDown={(event) => {
+          if (event.target === event.currentTarget) {
+            setIsModalOpen(false)
+          }
+        }}
+      >
+        <div className="w-full max-w-2xl rounded-3xl border border-white/20 bg-white/80 p-6 shadow-2xl backdrop-blur-xl dark:border-white/10 dark:bg-slate-900/80">
+          <div className="mb-5 flex items-start justify-between gap-4">
+            <h2 className="text-2xl font-black text-slate-900 dark:text-white">
+              {editingRowId ? `Edit ${entity.label}` : `Create ${entity.label}`}
+            </h2>
+            <button type="button" onClick={() => setIsModalOpen(false)} className="danger-button">Close</button>
+          </div>
+
+          <form onSubmit={handleSubmit} className="django-form-wrapper space-y-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              {editableFields.map((field) => {
+                const inputId = `${entity.key}-${field.key}`
+                const rawValue = Reflect.get(formState, field.key)
+
+                if (field.input === 'checkbox') {
+                  return (
+                    <div className="form-group" key={field.key}>
+                      <label htmlFor={inputId}>{field.label}</label>
+                      <input
+                        id={inputId}
+                        type="checkbox"
+                        checked={Boolean(rawValue)}
+                        onChange={(currentEvent) => updateField(field.key, currentEvent.currentTarget.checked)}
+                      />
+                    </div>
+                  )
+                }
+
+                return (
+                  <div className="form-group" key={field.key}>
+                    <label htmlFor={inputId}>{field.label}</label>
+                    <input
+                      id={inputId}
+                      type={field.input}
+                      value={String(rawValue ?? '')}
+                      onChange={(currentEvent: ChangeEvent<HTMLInputElement>) => updateField(field.key, currentEvent.currentTarget.value)}
+                      required={field.required}
+                    />
+                  </div>
+                )
+              })}
+            </div>
+
+            {errorMessage && (
+              <p className="rounded-xl border border-rose-300 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700 dark:border-rose-700 dark:bg-rose-900/30 dark:text-rose-200">
+                {errorMessage}
+              </p>
+            )}
+
+            <button type="submit" disabled={isSubmitting} className="w-full rounded-xl bg-gradient-to-r from-indigo-600 via-violet-600 to-fuchsia-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-600/30 transition-transform duration-300 hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-80">
+              {isSubmitting ? 'Saving...' : 'Save Record'}
+            </button>
+          </form>
+        </div>
+      </section>
+    </>
+  )
+}
+
+export default EntityPage
+[/file]
+[file (model.getReactTargetProject()+'src/pages/EntityFormPage.tsx', false, 'UTF-8')]
+import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react'
+import { Link, useNavigate, useParams } from 'react-router-dom'
+import { ENTITY_DEFINITIONS } from '../config/entities'
+import { createEntity, formatApiError, getEntityById, updateEntity } from '../lib/entityApi'
+import type { EntityDefinition, EntityField } from '../types/entities'
+
+type EntityFormPageProps = {
+  entityKey: string
+  mode: 'create' | 'edit'
+}
+
+function createInitialState(entity: EntityDefinition): Record<string, unknown> {
+  const initialState: Record<string, unknown> = {}
+
+  entity.fields
+    .filter((field) => !field.readOnly)
+    .forEach((field) => {
+      Reflect.set(initialState, field.key, field.input === 'checkbox' ? false : '')
+    })
+
+  return initialState
+}
+
+function isEmptyValue(value: unknown): boolean {
+  return value === '' || value === null || value === undefined
+}
+
+function mapFieldValue(field: EntityField, value: unknown): unknown {
+  if (field.kind === 'boolean') {
+    return Boolean(value)
+  }
+
+  if (field.kind === 'number') {
+    if (isEmptyValue(value)) {
+      return field.required ? 0 : null
+    }
+
+    const parsed = Number(value)
+    return Number.isNaN(parsed) ? null : parsed
+  }
+
+  if (isEmptyValue(value)) {
+    return field.required ? '' : null
+  }
+
+  return String(value)
+}
+
+function EntityFormPage({ entityKey, mode }: EntityFormPageProps) {
+  const navigate = useNavigate()
+  const { id } = useParams()
+
+  const entity = useMemo<EntityDefinition | undefined>(() => {
+    return ENTITY_DEFINITIONS.find((candidate) => candidate.key === entityKey)
+  }, ['['/]entityKey])
+
+  const editableFields = useMemo<Array<EntityField>>(() => {
+    if (!entity) {
+      return Array.of()
+    }
+
+    return entity.fields.filter((field) => !field.readOnly)
+  }, ['['/]entity])
+
+  const ['['/]formState, setFormState] = useState<Record<string, unknown>>(() => {
+    return entity ? createInitialState(entity) : {}
+  })
+  const ['['/]isSubmitting, setIsSubmitting] = useState(false)
+  const ['['/]isLoading, setIsLoading] = useState(mode === 'edit')
+  const ['['/]errorMessage, setErrorMessage] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!entity) {
+      setFormState({})
+      return
+    }
+
+    setFormState(createInitialState(entity))
+  }, ['['/]entity])
+
+  const loadEditData = useCallback(async () => {
+    if (!entity || mode !== 'edit') {
+      setIsLoading(false)
+      return
+    }
+
+    const parsedId = Number(id)
+    if (!id || Number.isNaN(parsedId) || parsedId <= 0) {
+      setErrorMessage('Invalid record ID.')
+      setIsLoading(false)
+      return
+    }
+
+    setIsLoading(true)
+    setErrorMessage(null)
+
+    try {
+      const payload = await getEntityById(entity, parsedId)
+      const nextState = createInitialState(entity)
+
+      editableFields.forEach((field) => {
+        const existingValue = Reflect.get(payload, field.key)
+        if (existingValue !== undefined && existingValue !== null) {
+          Reflect.set(nextState, field.key, existingValue)
+        }
+      })
+
+      setFormState(nextState)
+    } catch (error) {
+      setErrorMessage(formatApiError(error))
+    } finally {
+      setIsLoading(false)
+    }
+  }, ['['/]editableFields, entity, id, mode])
+
+  useEffect(() => {
+    void loadEditData()
+  }, ['['/]loadEditData])
+
+  const updateField = (fieldKey: string, value: unknown) => {
+    setFormState((previous) => {
+      const nextState = { ...previous }
+      Reflect.set(nextState, fieldKey, value)
+      return nextState
+    })
+  }
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+
+    if (!entity) {
+      return
+    }
+
+    const missingRequiredField = editableFields.find((field) => {
+      if (!field.required) {
+        return false
+      }
+
+      if (field.input === 'checkbox') {
+        return false
+      }
+
+      return isEmptyValue(Reflect.get(formState, field.key))
+    })
+
+    if (missingRequiredField) {
+      setErrorMessage(`${missingRequiredField.label} is required.`)
+      return
+    }
+
+    const payload: Record<string, unknown> = {}
+    editableFields.forEach((field) => {
+      const rawValue = Reflect.get(formState, field.key)
+      Reflect.set(payload, field.key, mapFieldValue(field, rawValue))
+    })
+
+    setIsSubmitting(true)
+    setErrorMessage(null)
+
+    try {
+      if (mode === 'edit') {
+        const parsedId = Number(id)
+        if (!id || Number.isNaN(parsedId) || parsedId <= 0) {
+          setErrorMessage('Invalid record ID.')
+          setIsSubmitting(false)
+          return
+        }
+
+        await updateEntity(entity, parsedId, payload)
+      } else {
+        await createEntity(entity, payload)
+      }
+
+      navigate(`/${entity.path}`)
+    } catch (error) {
+      setErrorMessage(formatApiError(error))
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  if (!entity) {
+    return (
+      <section className="page-card">
+        <h1 className="page-title">Unknown Entity</h1>
+        <p className="page-subtitle">The requested entity key does not exist.</p>
+      </section>
+    )
+  }
+
+  return (
+    <section className="page-card">
+      <h1 className="page-title">{mode === 'edit' ? `Edit ${entity.label}` : `Create ${entity.label}`}</h1>
+      <p className="page-subtitle">Fill in the fields and save your record.</p>
+
+      {errorMessage && <p className="feedback error">{errorMessage}</p>}
+
+      {isLoading ? (
+        <p className="feedback">Loading record...</p>
+      ) : (
+        <form onSubmit={handleSubmit}>
+          <div className="form-grid">
+            {editableFields.map((field) => {
+              const inputId = `${entity.key}-${field.key}`
+              const rawValue = Reflect.get(formState, field.key)
+
+              if (field.input === 'checkbox') {
+                return (
+                  <div className="form-field" key={field.key}>
+                    <label htmlFor={inputId}>{field.label}</label>
+                    <input
+                      id={inputId}
+                      type="checkbox"
+                      checked={Boolean(rawValue)}
+                      onChange={(currentEvent) => updateField(field.key, currentEvent.currentTarget.checked)}
+                    />
+                  </div>
+                )
+              }
+
+              return (
+                <div className="form-field" key={field.key}>
+                  <label htmlFor={inputId}>{field.label}</label>
+                  <input
+                    id={inputId}
+                    type={field.input}
+                    value={String(rawValue ?? '')}
+                    onChange={(currentEvent) => updateField(field.key, currentEvent.currentTarget.value)}
+                    required={field.required}
+                  />
+                </div>
+              )
+            })}
+          </div>
+
+          <div className="form-actions">
+            <Link to={`/${entity.path}`} className="ghost-button">Cancel</Link>
+            <button type="submit" className="primary-button" disabled={isSubmitting}>
+              {isSubmitting ? 'Saving...' : 'Save'}
+            </button>
+          </div>
+        </form>
+      )}
+    </section>
+  )
+}
+
+export default EntityFormPage
+[/file]
+[/template]
+
+[template private generateEntitySourceFiles(model : Model)]
+[for (cls : Class | model.getAllClass())]
+[file (model.getReactTargetProject()+'src/pages/'+cls.name.toUpperFirst()+'Page.tsx', false, 'UTF-8')]
+import EntityPage from './EntityPage'
+
+export default function [cls.name.toUpperFirst()/]Page() {
+  return <EntityPage entityKey="[cls.toEntityKey()/]" />
+}
+[/file]
+[file (model.getReactTargetProject()+'src/pages/Create'+cls.name.toUpperFirst()+'Page.tsx', false, 'UTF-8')]
+import { Navigate } from 'react-router-dom'
+
+export default function Create[cls.name.toUpperFirst()/]Page() {
+  return <Navigate to="/[cls.toRouteSegment()/]?mode=create" replace />
+}
+[/file]
+[file (model.getReactTargetProject()+'src/pages/Edit'+cls.name.toUpperFirst()+'Page.tsx', false, 'UTF-8')]
+import { Navigate, useParams } from 'react-router-dom'
+
+export default function Edit[cls.name.toUpperFirst()/]Page() {
+  const { id } = useParams()
+  const target = id ? `/[cls.toRouteSegment()/]?mode=edit&id=${id}` : '/[cls.toRouteSegment()/]'
+
+  return <Navigate to={target} replace />
+}
+[/file]
+[/for]
+[/template]
+
+[query private toEntityKey(cls : Class) : String =
+  cls.name.toSnakeCase()
+/]
+
+[query private toRouteSegment(cls : Class) : String =
+  if (cls.name.toSnakeCase().endsWith('s')) then cls.name.toSnakeCase() else cls.name.toSnakeCase() + 's' endif
+/]
+
+[query private toApiSingularSegment(cls : Class) : String =
+  cls.name.toSnakeCase()
+/]
+
+[query private toApiPluralSegment(cls : Class) : String =
+  cls.toRouteSegment()
+/]
+
+[query private toListFunctionSuffix(cls : Class) : String =
+  if (cls.name.toLower().endsWith('s')) then cls.name.toUpperFirst() else cls.name.toUpperFirst() + 's' endif
+/]
+
+[query private scalarFields(cls : Class) : Sequence(Property) =
+  cls.allAttributes()->select(p | (p.association.oclIsUndefined() or p.association.oclIsInvalid()) and p.name.toLower() <> 'id')->asSequence()
+/]
+
+[query private foreignKeyFields(cls : Class) : Sequence(Property) =
+  cls.allAttributes()->select(p | p.association->notEmpty() and p.shouldOwnForeignKey())->asSequence()
+/]
+
+[query private toFieldLabel(name : String) : String =
+  name.toSnakeCase().replaceAll('_', ' ').toUpperFirst()
+/]
+
+[query private toFieldKind(property : Property) : String =
+  if (property.type.oclIsUndefined() or property.type.oclIsInvalid()) then
+    'string'
+  else if (property.type.name.toLower() = 'integer' or property.type.name.toLower() = 'float') then
+    'number'
+  else if (property.type.name.toLower() = 'boolean') then
+    'boolean'
+  else if (property.type.name.toLower() = 'date') then
+    'date'
+  else if (property.type.name.toLower() = 'datetime') then
+    'datetime'
+  else
+    'string'
+  endif endif endif endif endif
+/]
+
+[query private toInputType(property : Property) : String =
+  if (property.type.oclIsUndefined() or property.type.oclIsInvalid()) then
+    'text'
+  else if (property.type.name.toLower() = 'integer' or property.type.name.toLower() = 'float') then
+    'number'
+  else if (property.type.name.toLower() = 'boolean') then
+    'checkbox'
+  else if (property.type.name.toLower() = 'date') then
+    'date'
+  else if (property.type.name.toLower() = 'datetime') then
+    'datetime-local'
+  else
+    'text'
+  endif endif endif endif endif
+/]
+
+[query private isRequired(property : Property) : String =
+  if (property.lower = 0) then 'false' else 'true' endif
+/]
+
+[query private isForeignKeyRequired(property : Property) : String =
+  if (property.isNullable() = 'False') then 'true' else 'false' endif
+/]

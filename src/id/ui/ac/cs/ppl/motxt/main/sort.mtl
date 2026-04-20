@@ -7,5 +7,5 @@
 /]
 
 [query private topoSort(m : Model) : Sequence(Class) =
-	invoke('com.motxt.main.Sort', 'topoSort(java.util.List)', Sequence{m.eAllContents(Class)})
+	invoke('id.ac.ui.cs.ppl.motxt.main.Sort', 'topoSort(java.util.List)', Sequence{m.eAllContents(Class)})
 /]

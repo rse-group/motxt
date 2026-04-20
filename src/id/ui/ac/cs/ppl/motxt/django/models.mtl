@@ -1,6 +1,6 @@
 [comment encoding = UTF-8 /]
 [module models('http://www.eclipse.org/uml2/5.0.0/UML')]
-[import com::motxt::main::utils/]
+[import id::ui::ac::cs::ppl::motxt::main::utils/]
 
 [template public djangoModels(model : Model)]
 from django.db import models

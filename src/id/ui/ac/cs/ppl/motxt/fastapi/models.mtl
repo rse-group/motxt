@@ -1,6 +1,6 @@
 [comment encoding = UTF-8 /]
 [module models('http://www.eclipse.org/uml2/5.0.0/UML')]
-[import com::motxt::main::utils/]
+[import id::ui::ac::cs::ppl::motxt::main::utils/]
 
 [template public generateFastAPIModels(model : Model)]
 [file (model.getFastAPITargetApp()+'models/__init__.py', false, 'UTF-8')]

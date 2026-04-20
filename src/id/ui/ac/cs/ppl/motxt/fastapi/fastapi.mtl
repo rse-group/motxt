@@ -1,9 +1,9 @@
 [comment encoding = UTF-8 /]
 [module fastapi('http://www.eclipse.org/uml2/5.0.0/UML')]
-[import com::motxt::main::utils/]
-[import com::motxt::fastapi::models/]
-[import com::motxt::fastapi::services/]
-[import com::motxt::fastapi::routers/]
+[import id::ui::ac::cs::ppl::motxt::main::utils/]
+[import id::ui::ac::cs::ppl::motxt::fastapi::models/]
+[import id::ui::ac::cs::ppl::motxt::fastapi::services/]
+[import id::ui::ac::cs::ppl::motxt::fastapi::routers/]
 
 [template public generateFastAPI(model : Model)]
 [model.requirements()/]
@@ -17,7 +17,7 @@
 [/template]
 
 [template private requirements(model : Model)]
-[file (model.targetFolder()+'requirements.txt', false, 'UTF-8')]
+[file (model.getFastAPITargetProject()+'requirements.txt', false, 'UTF-8')]
 fastapi
 uvicorn
 sqlalchemy
@@ -26,7 +26,7 @@ pydantic
 [/template]
 
 [template private generateRunBat(model : Model)]
-[file (model.targetFolder()+'run.bat', false, 'UTF-8')]
+[file (model.getFastAPITargetProject()+'run.bat', false, 'UTF-8')]
 @echo off
 setlocal
 
@@ -50,7 +50,7 @@ uvicorn src.main:app --reload
 [/template]
 
 [template private generateRunSh(model : Model)]
-[file (model.targetFolder()+'run.sh', false, 'UTF-8')]
+[file (model.getFastAPITargetProject()+'run.sh', false, 'UTF-8')]
 #!/usr/bin/env bash
 
 set -e

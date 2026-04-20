@@ -1,9 +1,9 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Acceleo Motxt Module Runtime Plug-in
-Bundle-SymbolicName: com.motxt;singleton:=true
+Bundle-SymbolicName: id.ac.ui.cs.ppl.motxt;singleton:=true
 Bundle-Version: 1.0.0.qualifier
-Bundle-Activator: com.motxt.Activator
+Bundle-Activator: id.ui.ac.cs.ppl.motxt.Activator
 Bundle-Vendor: Eclipse Modeling Project
 Require-Bundle: org.eclipse.core.runtime, 
  org.eclipse.uml2.uml, 
@@ -19,6 +19,8 @@ Require-Bundle: org.eclipse.core.runtime,
 Bundle-RequiredExecutionEnvironment: JavaSE-21
 Bundle-ActivationPolicy: lazy
 Eclipse-LazyStart: true
-Export-Package: com.motxt.django,
- com.motxt.main
+Export-Package: id.ui.ac.cs.ppl.motxt,
+ id.ui.ac.cs.ppl.motxt.django,
+ id.ui.ac.cs.ppl.motxt.main,
+ id.ui.ac.cs.ppl.motxt.react
 

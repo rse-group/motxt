@@ -8,7 +8,7 @@
  * Contributors:
  *     Obeo - initial API and implementation
  *******************************************************************************/
-package com.motxt;
+package id.ui.ac.cs.ppl.motxt;
 
 import org.eclipse.core.runtime.Plugin;
 import org.osgi.framework.BundleContext;
@@ -21,7 +21,7 @@ public class Activator extends Plugin {
     /**
      * The plug-in ID.
      */
-    public static final String PLUGIN_ID = "com.motxt";
+    public static final String PLUGIN_ID = "id.ac.ui.cs.ppl.motxt";
 
     /**
      * The shared instance.

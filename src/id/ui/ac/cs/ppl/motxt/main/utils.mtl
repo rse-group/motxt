@@ -1,6 +1,6 @@
 [comment encoding = UTF-8 /]
 [module utils('http://www.eclipse.org/uml2/5.0.0/UML')]
-[import com::motxt::main::sort/]
+[import id::ui::ac::cs::ppl::motxt::main::sort/]
 
 [query public toTitleCase(s : String) : String = 
     s.substring(1, 1).toUpper() + s.substring(2).toLower() 
@@ -35,7 +35,15 @@
 /]
 
 [query public getFastAPITargetApp(m : Model) : String =
-	m.targetFolder()+'src/'
+	m.getFastAPITargetProject()+'src/'
+/]
+
+[query public getFastAPITargetProject(m : Model) : String = 
+	m.name+'/Backend (FastAPI)/'
+/]
+
+[query public getReactTargetProject(m : Model) : String = 
+	m.name+'/Frontend (ReactJS)/'
 /]
 
 [query public mapDataTypeFieldDjango(p : Property) : String = 
