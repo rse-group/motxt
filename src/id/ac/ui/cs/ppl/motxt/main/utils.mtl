@@ -1,6 +1,6 @@
 [comment encoding = UTF-8 /]
 [module utils('http://www.eclipse.org/uml2/5.0.0/UML')]
-[import id::ui::ac::cs::ppl::motxt::main::sort/]
+[import id::ac::ui::cs::ppl::motxt::main::sort/]
 
 [query public toTitleCase(s : String) : String = 
     s.substring(1, 1).toUpper() + s.substring(2).toLower() 

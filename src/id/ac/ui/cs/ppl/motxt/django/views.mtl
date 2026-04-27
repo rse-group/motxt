@@ -1,6 +1,6 @@
 [comment encoding = UTF-8 /]
 [module views('http://www.eclipse.org/uml2/5.0.0/UML')]
-[import id::ui::ac::cs::ppl::motxt::main::utils /]
+[import id::ac::ui::cs::ppl::motxt::main::utils /]
 
 [template public genViews(model : Model)]
 from django.shortcuts import render, redirect
@@ -44,7 +44,7 @@ def landing_page(request):
 
 [template public landingPageViews(model : Model)]
 [for (cls : Class | model.getAllClass())]
-model_info['['/]"[cls.name.toLower()/]"[']'/] = "[cls.name.toTitleCase()/]"
+model_info['['/]"[cls.name.toSnakeCase()/]"[']'/] = "[cls.name.toTitleCase()/]"
 [/for]
 [/template]
 

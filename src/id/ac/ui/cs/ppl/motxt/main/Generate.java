@@ -1,5 +1,5 @@
 
-package id.ui.ac.cs.ppl.motxt.main;
+package id.ac.ui.cs.ppl.motxt.main;
 
 import java.io.File;
 import java.io.IOException;
@@ -26,7 +26,7 @@ public class Generate extends AbstractAcceleoGenerator {
      *
      * @generated
      */
-    public static final String MODULE_FILE_NAME = "/id/ui/ac/cs/ppl/motxt/main/generate";
+    public static final String MODULE_FILE_NAME = "/id/ac/ui/cs/ppl/motxt/main/generate";
 
     /**
      * The name of the templates that are to be generated.

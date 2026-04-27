@@ -1,6 +1,6 @@
 [comment encoding = UTF-8 /]
 [module models('http://www.eclipse.org/uml2/5.0.0/UML')]
-[import id::ui::ac::cs::ppl::motxt::main::utils/]
+[import id::ac::ui::cs::ppl::motxt::main::utils/]
 
 [template public generateFastAPIModels(model : Model)]
 [file (model.getFastAPITargetApp()+'models/__init__.py', false, 'UTF-8')]
@@ -95,16 +95,21 @@ class [cls.name/]([cls.getParentClass()/]):
 [field.getForeignKeyField()/]
 [/for]
 [if (cls.hasChildren(model))]
-account_type: Mapped['['/]str] = mapped_column(String(50), default="[cls.getPolymorphicIdentity()/]", nullable=False)
+[cls.name/]_type: Mapped['['/]str] = mapped_column(String(50), default="[cls.getPolymorphicIdentity()/]", nullable=False)
 [/if]
 [for (field : Property | cls.ownedAttribute->select(p | p.association->notEmpty()))]
 [field.getRelation()/]
 [/for]
 [if (cls.hasChildren(model))]
 __mapper_args__ = {
-	"polymorphic_on": account_type,
+	"polymorphic_on": [cls.name/]_type,
 	"polymorphic_identity": "[cls.getPolymorphicIdentity()/]",
 }
+
+@property
+def user_type(self) -> str:
+	# Backward-compatible alias expected by response DTOs.
+	return self.[cls.name/]_type
 [/if]
 [if (not cls.generalization->isEmpty())]
 __mapper_args__ = {

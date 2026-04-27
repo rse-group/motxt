@@ -1,6 +1,6 @@
 [comment encoding = UTF-8 /]
 [module html('http://www.eclipse.org/uml2/5.0.0/UML')]
-[import id::ui::ac::cs::ppl::motxt::main::utils/]
+[import id::ac::ui::cs::ppl::motxt::main::utils/]
 
 [template public generateHTML(model : Model)]
 [file (model.targetFolder()+'templates/base.html',false,'UTF-8')]
@@ -264,7 +264,7 @@
 [cls.editHTML() /]
 [/file]
 [/if]
-[file (model.getDjangoTargetMain()+'templates/'+cls.name.toLowerCase() + '_list.html', false, 'UTF-8')]
+[file (model.getDjangoTargetMain()+'templates/'+cls.name.toSnakeCase() + '_list.html', false, 'UTF-8')]
 [cls.getHTML() /]
 [/file]
 [/for]

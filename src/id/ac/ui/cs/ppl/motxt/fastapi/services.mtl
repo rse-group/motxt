@@ -1,7 +1,7 @@
 [comment encoding = UTF-8 /]
 [module services('http://www.eclipse.org/uml2/5.0.0/UML')]
-[import id::ui::ac::cs::ppl::motxt::main::utils/]
-[import id::ui::ac::cs::ppl::motxt::fastapi::models/]
+[import id::ac::ui::cs::ppl::motxt::main::utils/]
+[import id::ac::ui::cs::ppl::motxt::fastapi::models/]
 
 [template public generateServices(model : Model)]
 [file (model.getFastAPITargetApp()+'services/__init__.py', false, 'UTF-8')]

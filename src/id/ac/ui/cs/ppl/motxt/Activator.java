@@ -8,7 +8,7 @@
  * Contributors:
  *     Obeo - initial API and implementation
  *******************************************************************************/
-package id.ui.ac.cs.ppl.motxt;
+package id.ac.ui.cs.ppl.motxt;
 
 import org.eclipse.core.runtime.Plugin;
 import org.osgi.framework.BundleContext;
