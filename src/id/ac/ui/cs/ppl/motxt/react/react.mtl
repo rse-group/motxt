@@ -155,7 +155,24 @@ if not exist node_modules (
   call npm install
 )
 
-call npm run dev
+set PORT=5173
+
+:LOOP
+:: Check if the current port is in use
+netstat -ano | findstr /r /c:":%PORT% " >nul
+
+:: If errorlevel is 0, the port was found (it is in use)
+if %errorlevel% equ 0 (
+    echo ['['/]IN USE] Port %PORT% is taken. Checking next...
+    :: Add 1 to the port number
+    set /a PORT+=1
+    :: Jump back to the start of the loop
+    goto LOOP
+)
+
+echo Starting Vite dev server on port %PORT%...
+set VITE_PORT=%PORT%
+call npm run dev -- --port %PORT%
 [/file]
 [file (model.getReactTargetProject()+'run.sh', false, 'UTF-8')]
 #!/usr/bin/env bash
@@ -166,7 +183,15 @@ if test ! -d node_modules; then
   npm install
 fi
 
-npm run dev
+# Find available port starting from 5173 (Vite default)
+PORT=5173
+while lsof -Pi :$PORT -sTCP:LISTEN -t >/dev/null 2>&1 ; do
+    echo "['['/]IN USE] Port $PORT is taken. Checking next..."
+    PORT=$((PORT + 1))
+done
+
+echo "Starting Vite dev server on port $PORT..."
+npm run dev -- --port $PORT
 [/file]
 [file (model.getReactTargetProject()+'public/favicon.svg', false, 'UTF-8')]
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">

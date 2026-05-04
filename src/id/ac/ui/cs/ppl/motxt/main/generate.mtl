@@ -13,16 +13,20 @@
 
 [template public generate(model : Model)]
 [comment @main /]
-[model.generateFastAPIElements()/]
+[comment
+** This template is used for running with Eclipse's run as acceleo application
+ * Uncomment lines below to test each framework seperately
+/]
+[comment][model.generateFastAPIElements()/][/comment]
 [comment][model.generateDjangoElements()/][/comment]
-[comment][model.generateReact()/][/comment]
+[comment][model.generateReactElements()/][/comment]
 [/template]
 
 [template public generate(model : Model, framework : String)]
 [comment @main /]
-[if (framework = 'FastAPI')]
+[if (framework.toLower() = 'fastapi')]
 	[model.generateFastAPIElements()/]
-[elseif (framework = 'FastAPI-React')]
+[elseif (framework.toLower() = 'fastapi-react')]
 	[model.generateFastAPIElements()/]
 	[model.generateReactElements()/]
 [else]

@@ -45,7 +45,23 @@ if exist "requirements.txt" (
 		pip install fastapi uvicorn sqlalchemy pydantic
 )
 
-uvicorn src.main:app --reload
+set PORT=8000
+
+:LOOP
+:: Check if the current port is in use
+netstat -ano | findstr /r /c:":%PORT% " >nul
+
+:: If errorlevel is 0, the port was found (it is in use)
+if %errorlevel% equ 0 (
+    echo ['['/]IN USE] Port %PORT% is taken. Checking next...
+    :: Add 1 to the port number
+    set /a PORT+=1
+    :: Jump back to the start of the loop
+    goto LOOP
+)
+
+echo Starting FastAPI server on port %PORT%...
+uvicorn src.main:app --reload --port %PORT%
 [/file]
 [/template]
 
@@ -70,7 +86,18 @@ else
 	pip install fastapi uvicorn sqlalchemy pydantic
 fi
 
-uvicorn src.main:app --reload
+# Find available port starting from 8000
+PORT=8000
+while lsof -Pi :$PORT -sTCP:LISTEN -t >/dev/null 2>&1 ; do
+    echo "['['/]IN USE] Port $PORT is taken. Checking next..."
+    PORT=$((PORT + 1))
+done
+
+echo ""
+echo "['['/]SUCCESS] Port $PORT is available!"
+
+echo "Starting FastAPI server on port $PORT..."
+uvicorn src.main:app --reload --port $PORT
 [/file]
 [/template]
 

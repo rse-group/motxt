@@ -39,11 +39,11 @@
 /]
 
 [query public getFastAPITargetProject(m : Model) : String = 
-	m.name+'/Backend (FastAPI)/'
+	m.name+'/backend-fastapi/'
 /]
 
 [query public getReactTargetProject(m : Model) : String = 
-	m.name+'/Frontend (ReactJS)/'
+	m.name+'/frontend-react/'
 /]
 
 [query public mapDataTypeFieldDjango(p : Property) : String = 

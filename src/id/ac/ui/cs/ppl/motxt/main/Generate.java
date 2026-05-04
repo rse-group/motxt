@@ -114,12 +114,24 @@ public class Generate extends AbstractAcceleoGenerator {
         try {
             if (args.length < 2) {
                 System.out.println("Arguments not valid : {model, folder}.");
+           
             } else {
                 URI modelURI = URI.createFileURI(args[0]);
                 File folder = new File(args[1]);
 
                 List<String> arguments = new ArrayList<String>();
+                int propertiesStartIndex;
 
+                if (args.length == 3) {
+                    // If 3 or more args, the 3rd (index 2) is the framework
+                    String framework = args[2];
+                    arguments.add(framework);
+                    propertiesStartIndex = 3; 
+                } else {
+                    // If only 2 args, properties (if any) would have started at index 2
+                    propertiesStartIndex = 2;
+                }
+                
                 /*
                  * If you want to change the content of this method, do NOT forget to change the
                  * "@generated"
@@ -155,10 +167,10 @@ public class Generate extends AbstractAcceleoGenerator {
                  * (Help -> Help Contents).
                  */
 
-                for (int i = 2; i < args.length; i++) {
+                for (int i = propertiesStartIndex; i < args.length; i++) {
                     generator.addPropertiesFile(args[i]);
                 }
-
+                
                 generator.doGenerate(new BasicMonitor());
                 System.out.println("Generated");
             }
