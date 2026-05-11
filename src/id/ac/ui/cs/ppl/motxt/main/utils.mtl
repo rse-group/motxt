@@ -82,7 +82,7 @@
 	else if (p.type.name.toLower() = 'datetime') then
 		': Mapped[datetime] = mapped_column(DateTime, default=datetime.now(timezone.utc), nullable=False)'
     else 
-        'models.TextField()'
+        ': Mapped[str] = mapped_column(Text, nullable=False)'
     endif endif endif endif endif endif endif
 /]
 

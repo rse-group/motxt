@@ -95,21 +95,16 @@ class [cls.name/]([cls.getParentClass()/]):
 [field.getForeignKeyField()/]
 [/for]
 [if (cls.hasChildren(model))]
-[cls.name/]_type: Mapped['['/]str] = mapped_column(String(50), default="[cls.getPolymorphicIdentity()/]", nullable=False)
+[cls.name.toSnakeCase()/]_type: Mapped['['/]str] = mapped_column(String(50), default="[cls.getPolymorphicIdentity()/]", nullable=False)
 [/if]
 [for (field : Property | cls.ownedAttribute->select(p | p.association->notEmpty()))]
 [field.getRelation()/]
 [/for]
 [if (cls.hasChildren(model))]
 __mapper_args__ = {
-	"polymorphic_on": [cls.name/]_type,
+	"polymorphic_on": "[cls.name.toSnakeCase()/]_type",
 	"polymorphic_identity": "[cls.getPolymorphicIdentity()/]",
 }
-
-@property
-def user_type(self) -> str:
-	# Backward-compatible alias expected by response DTOs.
-	return self.[cls.name/]_type
 [/if]
 [if (not cls.generalization->isEmpty())]
 __mapper_args__ = {

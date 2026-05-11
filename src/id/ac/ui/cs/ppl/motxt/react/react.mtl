@@ -83,6 +83,14 @@ VITE_API_BASE_URL=http://127.0.0.1:8000
       rel="stylesheet"
     />
     <title>[model.name/] React</title>
+    <script>
+      (function () {
+        const stored = localStorage.getItem('theme');
+        if (stored === 'dark' || (!stored && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+          document.documentElement.classList.add('dark');
+        }
+      })();
+    </script>
   </head>
   <body
     class="flex min-h-screen flex-col overflow-x-hidden bg-slate-300 font-sans transition-colors duration-200 dark:bg-slate-900"
@@ -152,6 +160,7 @@ export default {
 setlocal
 
 if not exist node_modules (
+  echo Installing Dependencies...
   call npm install
 )
 
@@ -180,6 +189,7 @@ call npm run dev -- --port %PORT%
 set -e
 
 if test ! -d node_modules; then
+  echo Installing Dependencies...
   npm install
 fi
 
@@ -769,11 +779,37 @@ function App() {
 
 export default App
 [/file]
+[file (model.getReactTargetProject()+'src/hooks/useDarkMode.ts', false, 'UTF-8')]
+import { useCallback, useEffect, useState } from 'react'
+
+export function useDarkMode(): ['['/]boolean, () => void] {
+  const ['['/]isDark, setIsDark] = useState<boolean>(() =>
+    document.documentElement.classList.contains('dark'),
+  )
+
+  useEffect(() => {
+    if (isDark) {
+      document.documentElement.classList.add('dark')
+      localStorage.setItem('theme', 'dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+      localStorage.setItem('theme', 'light')
+    }
+  }, ['['/]isDark])
+
+  const toggle = useCallback(() => setIsDark((prev) => !prev), ['['/]])
+
+  return ['['/]isDark, toggle]
+}
+[/file]
 [file (model.getReactTargetProject()+'src/components/BaseLayout.tsx', false, 'UTF-8')]
 import { Link, Outlet } from 'react-router-dom'
 import EntitySidebar from './EntitySidebar'
+import { useDarkMode } from '../hooks/useDarkMode'
 
 function BaseLayout() {
+  const ['['/]isDark, toggleDark] = useDarkMode()
+
   return (
     <div className="app-shell">
       <header className="app-header">
@@ -781,6 +817,22 @@ function BaseLayout() {
         <nav className="top-nav">
           <Link to="/" className="top-nav-link">Home</Link>
           <Link to="/dashboard" className="top-nav-link">Dashboard</Link>
+          <button
+            type="button"
+            onClick={toggleDark}
+            aria-label="Toggle dark mode"
+            className="rounded-xl border border-white/30 bg-white/40 p-2 text-slate-600 transition-colors hover:bg-white/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 dark:border-white/10 dark:bg-slate-800/50 dark:text-slate-300 dark:hover:bg-slate-700/70"
+          >
+            {isDark ? (
+              <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v1m0 16v1m8.66-9h-1M4.34 12h-1m15.07-6.07-.71.71M5.64 18.36l-.71.71m12.73 0-.71-.71M5.64 5.64l-.71-.71M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z" />
+              </svg>
+            ) : (
+              <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z" />
+              </svg>
+            )}
+          </button>
         </nav>
       </header>
 
@@ -1564,7 +1616,7 @@ function EntityPage({ entityKey }: EntityPageProps) {
   const ['['/]pendingDeleteId, setPendingDeleteId] = useState<number | null>(null)
   const ['['/]isModalOpen, setIsModalOpen] = useState(false)
   const ['['/]editingRowId, setEditingRowId] = useState<number | null>(null)
-  const ['['/]formState, setFormState] = useState<Record<string, unknown>>(Array.of())
+  const ['['/]formState, setFormState] = useState<Record<string, unknown>>({})
   const ['['/]deleteTargetId, setDeleteTargetId] = useState<number | null>(null)
   const ['['/]errorMessage, setErrorMessage] = useState<string | null>(null)
   const ['['/]deleteErrorMessage, setDeleteErrorMessage] = useState<string | null>(null)
@@ -1919,7 +1971,7 @@ function EntityPage({ entityKey }: EntityPageProps) {
           }
         }}
       >
-        <div className="w-full max-w-2xl rounded-3xl border border-white/20 bg-white/80 p-6 shadow-2xl backdrop-blur-xl dark:border-white/10 dark:bg-slate-900/80">
+        <div className="w-full max-w-2xl overflow-y-auto max-h-['['/]90vh] rounded-3xl border border-white/20 bg-white/80 p-6 shadow-2xl backdrop-blur-xl dark:border-white/10 dark:bg-slate-900/80">
           <div className="mb-5 flex items-start justify-between gap-4">
             <h2 className="text-2xl font-black text-slate-900 dark:text-white">
               {editingRowId ? `Edit ${entity.label}` : `Create ${entity.label}`}
@@ -2283,11 +2335,21 @@ export default function Edit[cls.name.toUpperFirst()/]Page() {
 /]
 
 [query private scalarFields(cls : Class) : Sequence(Property) =
-  cls.allAttributes()->select(p | (p.association.oclIsUndefined() or p.association.oclIsInvalid()) and p.name.toLower() <> 'id')->asSequence()
+  cls.ownedAttribute->select(p | (p.association.oclIsUndefined() or p.association.oclIsInvalid()) and p.name.toLower() <> 'id')->asSequence()
+    ->union(
+      if cls.generalization->isEmpty() then Sequence{} else
+        cls.generalization.general->filter(Class)->asSequence()->first().scalarFields()
+      endif
+    )->asOrderedSet()->asSequence()
 /]
 
 [query private foreignKeyFields(cls : Class) : Sequence(Property) =
-  cls.allAttributes()->select(p | p.association->notEmpty() and p.shouldOwnForeignKey())->asSequence()
+  cls.ownedAttribute->select(p | p.association->notEmpty() and p.shouldOwnForeignKey())->asSequence()
+    ->union(
+      if cls.generalization->isEmpty() then Sequence{} else
+        cls.generalization.general->filter(Class)->asSequence()->first().foreignKeyFields()
+      endif
+    )->asOrderedSet()->asSequence()
 /]
 
 [query private toFieldLabel(name : String) : String =

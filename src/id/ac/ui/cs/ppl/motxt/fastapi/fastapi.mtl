@@ -47,17 +47,12 @@ if exist "requirements.txt" (
 
 set PORT=8000
 
-:LOOP
-:: Check if the current port is in use
+:: Check if port 8000 is already in use and warn
 netstat -ano | findstr /r /c:":%PORT% " >nul
-
-:: If errorlevel is 0, the port was found (it is in use)
 if %errorlevel% equ 0 (
-    echo ['['/]IN USE] Port %PORT% is taken. Checking next...
-    :: Add 1 to the port number
-    set /a PORT+=1
-    :: Jump back to the start of the loop
-    goto LOOP
+    echo ['['/]WARNING] Port %PORT% is already in use.
+    echo           Please terminate the process using port %PORT% and try again.
+    exit /b 1
 )
 
 echo Starting FastAPI server on port %PORT%...
@@ -86,15 +81,14 @@ else
 	pip install fastapi uvicorn sqlalchemy pydantic
 fi
 
-# Find available port starting from 8000
 PORT=8000
-while lsof -Pi :$PORT -sTCP:LISTEN -t >/dev/null 2>&1 ; do
-    echo "['['/]IN USE] Port $PORT is taken. Checking next..."
-    PORT=$((PORT + 1))
-done
 
-echo ""
-echo "['['/]SUCCESS] Port $PORT is available!"
+# Warn if port 8000 is already in use
+if lsof -Pi :$PORT -sTCP:LISTEN -t >/dev/null 2>&1 ; then
+    echo "['['/]WARNING] Port $PORT is already in use."
+    echo "          Please terminate the process using port $PORT and try again."
+    exit 1
+fi
 
 echo "Starting FastAPI server on port $PORT..."
 uvicorn src.main:app --reload --port $PORT
@@ -104,6 +98,7 @@ uvicorn src.main:app --reload --port $PORT
 [template public generateMain(model : Model)]
 [file (model.getFastAPITargetApp()+'main.py', false, 'UTF-8')]
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from src.routers import [for (cls : Class | model.getAllClass()) separator(', ')] [cls.name.toSnakeCase()/]s[/for]
 
 from src.database import Base, engine 
@@ -112,6 +107,20 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="[model.name.toSnakeCase()/] API", version="1.0.0")
 
+# CORS configuration: adjust origins for your frontend environments
+origins = ['['/]
+    "http://localhost:5173",
+    "http://localhost:3000",
+	"*",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=['['/]"*"],
+    allow_headers=['['/]"*"],
+)
 
 @app.get("/")
 def root():
