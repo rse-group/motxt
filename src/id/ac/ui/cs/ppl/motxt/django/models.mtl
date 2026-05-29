@@ -11,11 +11,13 @@ from datetime import date
 from django.utils import timezone
 [/if]
 
+
 [for (cls : Class | model.getAllClass()) separator('\n')]
 class [cls.name/]([cls.getParentClass()/]):
     [cls.getAttributes()/]
     pass
 [/for]
+[model.getThroughModels()/]
 [/template]
 
 [template public getParentClass(cls : Class)]
@@ -30,12 +32,27 @@ class [cls.name/]([cls.getParentClass()/]):
 [field.getRelation()/][/if][/for]
 [/template]
 
+[template public getThroughModels(model : Model)]
+[for (assoc : Association | model.allOwnedElements()->filter(Association))]
+[let end1 : Property = assoc.memberEnd->at(1)]
+[let end2 : Property = assoc.memberEnd->at(2)]
+[if (end1.isToMany() and end2.isToMany())]
+class [end1.getThroughModelName()/](models.Model):
+    [end1.getRoleName()/] = models.ForeignKey([end1.type.name/], [end1.getRelationType()/])
+    [end2.getRoleName()/] = models.ForeignKey([end2.type.name/], [end2.getRelationType()/])
+    pass
+[/if]
+[/let]
+[/let]
+[/for]
+[/template]
+
 [template public getRelation(p : Property)]
 [let other : Property = p.association.memberEnd->select(r | r <> p)->first()]
 [if (p.upper = 1 and other.upper = 1)]
 [p.name.toLower()/] = models.OneToOneField([p.type.name/], [p.getRelationType()/])
 [elseif ((p.upper = -1 or p.upper > 1) and (other.upper = -1 or other.upper > 1))]
-list_of_[p.name.toTitleCase()/] = models.ManyToManyField([p.type.name/], [p.getRelationType()/])
+list_of_[p.name.toTitleCase()/] = models.ManyToManyField([p.type.name/], through='[p.getThroughModelName()/]')
 [elseif (p.upper = 1 and (other.upper = -1 or other.upper > 1))]
 [p.name.toLowerCase()/]FK = models.ForeignKey([p.type.name/], [p.getRelationType()/])
 [else]

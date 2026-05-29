@@ -143,6 +143,16 @@
 	endif endif
 /]
 
+[query public getThroughModelName(p : Property) : String =
+	if (p.association.oclIsUndefined()) then
+		''
+	else if (p.association.name.oclIsUndefined() or p.association.name = '') then
+		p.association.memberEnd->at(1).type.name + p.association.memberEnd->at(2).type.name
+	else
+		p.association.name
+	endif endif
+/]
+
 [query public getParams(m : Operation): OrderedSet(Parameter) =
 	m.ownedParameter->select(p | p.direction.toString()='in')
 /]
