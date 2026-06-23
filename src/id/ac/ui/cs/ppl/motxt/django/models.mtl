@@ -28,8 +28,7 @@ class [cls.name/]([cls.getParentClass()/]):
 [for (field : Property | cls.ownedAttribute)]
 [if (field.association.oclIsUndefined())]
 [field.name.toSnakeCase()/] = [field.mapDataTypeFieldDjango()/]
-[elseif ((not(field.association.memberEnd->at(2) = field) and (field.aggregation.oclIsInvalid())) or ((field.association.memberEnd->first() = field) and not(field.aggregation.oclIsUndefined())))]
-[field.getRelation()/][/if][/for]
+[else][field.getRelation()/][/if][/for]
 [/template]
 
 [template public getThroughModels(model : Model)]
@@ -51,14 +50,15 @@ class [end1.getThroughModelName()/](models.Model):
 [let other : Property = p.association.memberEnd->select(r | r <> p)->first()]
 [if (p.upper = 1 and other.upper = 1)]
 [p.name.toLower()/] = models.OneToOneField([p.type.name/], [p.getRelationType()/])
+
 [elseif ((p.upper = -1 or p.upper > 1) and (other.upper = -1 or other.upper > 1))]
 list_of_[p.name.toTitleCase()/] = models.ManyToManyField([p.type.name/], through='[p.getThroughModelName()/]')
+
 [elseif (p.upper = 1 and (other.upper = -1 or other.upper > 1))]
 [p.name.toLowerCase()/]FK = models.ForeignKey([p.type.name/], [p.getRelationType()/])
+
 [else]
-[comment Case: One-to-Many (Inverse). Django usually does not define a field on the 'One' side. /]
-[comment If you must define it here, it technically mirrors a ForeignKey logic or requires a specific related_name /]
-[p.name.toLowerCase()/]FK = models.ForeignKey([p.type.name/], [p.getRelationType()/], related_name='[p.name.toLowerCase()/]')
+[comment Case: One-to-Many (Inverse). Di Django, sisi 'One' (Induk) TIDAK BOLEH mendeklarasikan ForeignKey. Relasi terbalik (reverse relation) akan ditangani otomatis oleh Django dari sisi 'Many' (Anak). /]
 [/if]
 [/let]
 [/template]
