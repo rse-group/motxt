@@ -37,8 +37,8 @@ class [cls.name/]([cls.getParentClass()/]):
 [let end2 : Property = assoc.memberEnd->at(2)]
 [if (end1.isToMany() and end2.isToMany())]
 class [end1.getThroughModelName()/](models.Model):
-    [end1.getRoleName()/] = models.ForeignKey([end1.type.name/], [end1.getRelationType()/])
-    [end2.getRoleName()/] = models.ForeignKey([end2.type.name/], [end2.getRelationType()/])
+    [end1.getRoleName()/] = models.ForeignKey('[end1.type.name/]', [end1.getRelationType()/])
+    [end2.getRoleName()/] = models.ForeignKey('[end2.type.name/]', [end2.getRelationType()/])
     pass
 [/if]
 [/let]
@@ -48,14 +48,17 @@ class [end1.getThroughModelName()/](models.Model):
 
 [template public getRelation(p : Property)]
 [let other : Property = p.association.memberEnd->select(r | r <> p)->first()]
-[if (p.upper = 1 and other.upper = 1)]
-[p.name.toLower()/] = models.OneToOneField([p.type.name/], [p.getRelationType()/])
+[if (p.upper = 1 and other.upper = 1 and p.shouldOwnForeignKey())]
+[p.name.toLower()/] = models.OneToOneField('[p.type.name/]', [p.getRelationType()/])
+
+[elseif (p.upper = 1 and other.upper = 1 and not p.shouldOwnForeignKey())]
+[comment Case: One-to-One (Inverse). The FK is owned by the other side. Django generates the reverse accessor automatically. /]
 
 [elseif ((p.upper = -1 or p.upper > 1) and (other.upper = -1 or other.upper > 1))]
-list_of_[p.name.toTitleCase()/] = models.ManyToManyField([p.type.name/], through='[p.getThroughModelName()/]')
+list_of_[p.name.toTitleCase()/] = models.ManyToManyField('[p.type.name/]', through='[p.getThroughModelName()/]')
 
 [elseif (p.upper = 1 and (other.upper = -1 or other.upper > 1))]
-[p.name.toLowerCase()/]FK = models.ForeignKey([p.type.name/], [p.getRelationType()/])
+[p.name.toLowerCase()/]FK = models.ForeignKey('[p.type.name/]', [p.getRelationType()/])
 
 [else]
 [comment Case: One-to-Many (Inverse). Di Django, sisi 'One' (Induk) TIDAK BOLEH mendeklarasikan ForeignKey. Relasi terbalik (reverse relation) akan ditangani otomatis oleh Django dari sisi 'Many' (Anak). /]

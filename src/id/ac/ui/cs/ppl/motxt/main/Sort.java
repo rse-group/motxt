@@ -4,7 +4,6 @@ import org.eclipse.uml2.uml.Class;
 import org.eclipse.uml2.uml.Property;
 import org.eclipse.uml2.uml.Type;
 import org.eclipse.uml2.uml.Association;
-import org.eclipse.uml2.uml.AggregationKind;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -59,15 +58,24 @@ public class Sort {
                     
                     // Safety check to ensure the association has enough ends
                     if (memberEnds.size() >= 2) {
-                        // OCL: not(field.association.memberEnd->at(2) = field) and (field.aggregation.oclIsInvalid())
-                        boolean condition1 = !memberEnds.get(1).equals(field) && 
-                                             field.getAggregation() == AggregationKind.NONE_LITERAL;
-                        
-                        // OCL: (field.association.memberEnd->first() = field) and not(field.aggregation.oclIsUndefined())
-                        boolean condition2 = memberEnds.get(0).equals(field) && 
-                                             field.getAggregation() != AggregationKind.NONE_LITERAL;
-                                             
-                        if (condition1 || condition2) {
+                        Property other = memberEnds.get(0).equals(field)
+                                ? memberEnds.get(1)
+                                : memberEnds.get(0);
+
+                        int fieldUpper = field.getUpper();  // -1 means *
+                        int otherUpper = other.getUpper();
+
+                        boolean fieldIsToOne  = fieldUpper == 1;
+                        boolean otherIsToMany = otherUpper == -1 || otherUpper > 1;
+
+                        // This side owns the FK when:
+                        //   (a) field upper=1 and other upper=* (Many-to-One: FK lives here)
+                        //   (b) field upper=1 and other upper=1 and this is the first memberEnd (1:1 owner)
+                        boolean isOneToMany = fieldIsToOne && otherIsToMany;
+                        boolean isOneToOneOwner = fieldIsToOne && !otherIsToMany
+                                                  && memberEnds.get(0).equals(field);
+
+                        if (isOneToMany || isOneToOneOwner) {
                             isDependency = true;
                         }
                     }
